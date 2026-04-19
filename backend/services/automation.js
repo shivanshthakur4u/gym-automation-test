@@ -339,7 +339,10 @@ async function triggerOnboarding(member) {
 async function handleNewMemberFormSubmission(formData) {
   const phone = cleanPhone(formData.phone);
   const member = await db.getMemberByPhone(phone);
-  if (!member) return;
+  if (!member) {
+    console.warn('Form webhook: no member in DB for phone', phone, '(member must exist before form submit)');
+    return { ok: false, reason: 'member_not_found' };
+  }
 
   // Update member from form data
   await db.updateMember(member.id, {
@@ -362,6 +365,8 @@ async function handleNewMemberFormSubmission(formData) {
     trainerName: trainer?.name,
     planName: getPlanName(member.plan),
   });
+
+  return { ok: true, memberId: member.id };
 }
 
 async function sendMorningMotivation(members) {

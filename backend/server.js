@@ -103,15 +103,16 @@ app.post('/webhook/payment', async (req, res) => {
   }
 });
 
-// Google Forms submission — respond immediately so proxies (Railway) always get a fast 200
-app.post('/webhook/form', (req, res) => {
-  const formData = req.body;
-  res.sendStatus(200);
-  setImmediate(() => {
-    automation.handleNewMemberFormSubmission(formData).catch((err) => {
-      console.error('Form webhook error:', err);
-    });
-  });
+// Google Forms — await handler so response tells you if DB actually updated (still fast if DB is quick)
+app.post('/webhook/form', async (req, res) => {
+  try {
+    const formData = req.body;
+    const result = await automation.handleNewMemberFormSubmission(formData);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Form webhook error:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 // ─────────────────────────────────────────
