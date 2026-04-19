@@ -376,12 +376,16 @@ async function handleNewMemberFormSubmission(formData) {
     }
   }
 
+  const ageNum = formData.age != null && formData.age !== '' ? parseInt(formData.age, 10) : null;
+  const w = formData.weight != null && formData.weight !== '' ? parseFloat(formData.weight) : null;
+  const h = formData.height != null && formData.height !== '' ? parseFloat(formData.height) : null;
+
   await db.updateMember(member.id, {
     fitnessGoal: goalNorm,
     healthIssues: formData.healthIssues,
-    age: formData.age,
-    weight: formData.weight,
-    height: formData.height,
+    age: Number.isFinite(ageNum) ? ageNum : null,
+    weightKg: Number.isFinite(w) ? w : null,
+    heightCm: Number.isFinite(h) ? h : null,
     status: 'active',
     formSubmittedAt: new Date(),
   });
