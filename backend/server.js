@@ -11,10 +11,10 @@ const cors = require('cors');
 const cron = require('node-cron');
 const { body, validationResult } = require('express-validator');
 
-const whatsapp = require('./services/whatsapp');
-const db = require('./services/database');
-const automation = require('./services/automation');
-const payments = require('./services/payments');
+const whatsapp = require('./whatsapp');
+const db = require('./database');
+const automation = require('./automation');
+const payments = require('./payments');
 
 const app = express();
 app.use(express.json());
