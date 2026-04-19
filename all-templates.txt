@@ -1,0 +1,268 @@
+# ╔══════════════════════════════════════════════════════════╗
+# ║  GymBot Pro — WhatsApp Template Messages                 ║
+# ║  Submit ALL templates to Meta Business Manager           ║
+# ║  Category: UTILITY for transactional, MARKETING for promo║
+# ╚══════════════════════════════════════════════════════════╝
+
+# Variables use {{1}}, {{2}} etc. — filled by your backend
+# Templates need 24–48hr Meta review before going live
+
+═══════════════════════════════════════════════
+TEMPLATE 1: gym_welcome_intake
+Category: UTILITY
+Language: en
+Header: None
+═══════════════════════════════════════════════
+
+Body:
+👋 Welcome to *{{1}}*!
+
+We're so excited to have you join our fitness family! 🎉
+
+To get you set up properly, please fill in your quick intake form (takes just 2 minutes):
+
+📋 *{{2}}*
+
+This helps us:
+✅ Assign the right trainer for your goals
+✅ Create a personalised workout plan
+✅ Track your progress from Day 1
+
+Once submitted, you'll receive your *Welcome Kit* with your schedule, trainer details, and first week plan!
+
+See you at the gym! 💪
+
+Footer: Reply MENU anytime for help
+
+═══════════════════════════════════════════════
+TEMPLATE 2: membership_confirmed
+Category: UTILITY
+Language: en
+Header: ✅ Membership Confirmed!
+═══════════════════════════════════════════════
+
+Body:
+Hi *{{1}}* — you're officially a member! 🎊
+
+📋 *Your Membership Details:*
+• Plan: *{{2}}*
+• Valid Until: *{{3}}*
+• Your Trainer: *{{4}}*
+• Your Batch: *{{5}}*
+
+📍 *What's next:*
+1️⃣ Show up tomorrow at your batch time
+2️⃣ Your trainer will do an initial assessment
+3️⃣ You'll get your personalised workout plan
+
+📱 *This WhatsApp bot is your gym companion!*
+Reply with any of these anytime:
+• *WORKOUT* — Today's exercise plan
+• *DIET* — Your nutrition plan
+• *STATUS* — Membership details
+• *MENU* — All options
+
+Welcome aboard — let's crush your goals! 🔥
+
+Footer: GymBot Pro — Your 24/7 Gym Assistant
+
+═══════════════════════════════════════════════
+TEMPLATE 3: payment_reminder
+Category: UTILITY
+Language: en
+Header: 💳 Membership Renewal
+═══════════════════════════════════════════════
+
+Body:
+Hi *{{1}}* 👋
+
+Your *{{2}}* membership renewal is coming up!
+
+💰 Amount: *{{3}}*
+🔔 Reminder: *{{4}} of 3*
+
+Pay now in seconds — link below:
+🔗 *{{5}}*
+
+✅ UPI / Cards / Net Banking accepted
+✅ Auto-extends your membership instantly
+✅ No visit to gym needed
+
+_Link expires in 7 days_
+
+Questions? Reply here or call us! 📞
+
+Footer: GymBot Pro — Tap the link to renew
+
+Button: [PAY NOW → {{5}}]
+
+═══════════════════════════════════════════════
+TEMPLATE 4: payment_success
+Category: UTILITY
+Language: en
+Header: 🎉 Payment Received!
+═══════════════════════════════════════════════
+
+Body:
+Thank you *{{1}}*! 
+
+✅ *Payment Confirmed*
+💰 Amount Paid: *{{2}}*
+📅 Valid Until: *{{3}}*
+
+Your membership has been extended automatically. No action needed!
+
+📄 Download your receipt here:
+*{{4}}*
+
+Keep up the amazing work — see you at the gym! 💪🔥
+
+Footer: GymBot Pro — Thank you for renewing!
+
+═══════════════════════════════════════════════
+TEMPLATE 5: morning_motivation
+Category: MARKETING
+Language: en
+Header: 🌅 Good Morning, {{1}}!
+═══════════════════════════════════════════════
+
+Body:
+*"{{2}}"*
+
+Today's focus: *{{3}}* 💪
+
+⏰ Your batch starts at *{{4}}*
+Don't miss it — your body will thank you later! 🙏
+
+Reply *WORKOUT* to see today's full exercise plan.
+
+Footer: GymBot Pro — Let's GO! 🔥
+
+═══════════════════════════════════════════════
+TEMPLATE 6: milestone_celebration
+Category: MARKETING
+Language: en
+Header: 🏆 MILESTONE ACHIEVED!
+═══════════════════════════════════════════════
+
+Body:
+*{{1}}*, YOU'RE INCREDIBLE! 🎉🏆
+
+You've just *{{3}}*
+
+That's *{{2}} days* of showing up, pushing limits, and becoming the best version of yourself! 
+
+We're SO proud of you! 🙌
+
+Share your progress with us — reply with your before/after or a gym selfie! 📸
+
+Keep going — the best is yet to come! 🔥💪
+
+Footer: GymBot Pro — Celebrating YOU!
+
+═══════════════════════════════════════════════
+TEMPLATE 7: winback_offer
+Category: MARKETING
+Language: en
+Header: 💪 We Miss You, {{1}}!
+═══════════════════════════════════════════════
+
+Body:
+Hey *{{1}}* 👋
+
+It's been a while and we genuinely miss seeing you at the gym!
+
+We know life gets busy — but your fitness journey doesn't have to stop.
+
+🎁 *Special Come-Back Offer just for you:*
+Use code *{{2}}* for *20% OFF* on your next membership plan!
+
+Limited time — expires in 7 days.
+
+👉 Renew here: *{{3}}*
+
+OR reply *RENEW* and we'll send you a payment link instantly.
+
+We believe in you — let's get back on track together! 💪🔥
+
+Footer: GymBot Pro — Come back stronger!
+
+═══════════════════════════════════════════════
+TEMPLATE 8: birthday_greeting
+Category: MARKETING
+Language: en
+Header: 🎂 Happy Birthday!
+═══════════════════════════════════════════════
+
+Body:
+🎉 *Happy Birthday, {{1}}!* 🎂
+
+The entire team at the gym wishes you a fantastic birthday filled with joy, health, and strength! 🎊
+
+🎁 *Birthday Gift from us:*
+FREE 1 personal training session this week!
+Just show this message to the front desk.
+
+May this year bring you closer to all your fitness goals and beyond! 
+
+Here's to a stronger, healthier, happier YOU! 💪🌟
+
+With love,
+Your GymBot Pro Family ❤️
+
+Footer: GymBot Pro — Celebrating you today!
+
+═══════════════════════════════════════════════
+TEMPLATE 9: weekly_plan_ready
+Category: MARKETING
+Language: en
+Header: 📋 Your Weekly Plan is Ready!
+═══════════════════════════════════════════════
+
+Body:
+Hi *{{1}}* 🌟
+
+Your personalised *Week {{2}} Plan* is here!
+
+📋 *This week includes:*
+• Complete 7-day workout schedule
+• Day-by-day diet chart for your *{{3}}* goal
+• Supplement timing guide
+• Hydration tracker
+
+🔗 View & download: *{{4}}*
+
+Follow it consistently for best results!
+
+Questions about your plan? Reply here and we'll connect you with your trainer. 💬
+
+Have an amazing week! 💪🔥
+
+Footer: GymBot Pro — Your Weekly Fitness Companion
+
+═══════════════════════════════════════════════
+# HOW TO SUBMIT TEMPLATES TO META
+═══════════════════════════════════════════════
+
+1. Go to: business.facebook.com
+2. Navigate to: WhatsApp Manager → Message Templates
+3. Click "Create Template"
+4. Fill in:
+   - Template name (use names above, e.g. gym_welcome_intake)
+   - Category (UTILITY or MARKETING as noted)
+   - Language: English
+   - Copy-paste the body text above
+   - Add variables {{1}}, {{2}} etc. in the right places
+5. Submit for review (24–48 hours)
+6. Once approved, use template name in your code
+
+IMPORTANT RULES:
+✅ UTILITY templates: transactional, order confirmations, reminders — free to send
+⚠️ MARKETING templates: promotional content — charged per message (~₹0.35–0.58 each)
+❌ Do NOT send marketing templates to users who haven't opted in
+❌ Do NOT send messages with prohibited content (gambling, adult content)
+
+For Indian businesses:
+- Register on Meta Business Suite with Indian business docs
+- Verify your WhatsApp Business Account (WABA)
+- Your phone number must be dedicated (not used for personal WA)

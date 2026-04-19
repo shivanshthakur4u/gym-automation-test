@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymBot Pro — Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f0d;
+  --surface:#111811;
+  --card:#161e18;
+  --card2:#1a2420;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:#e8f0ea;
+  --muted:#7a9080;
+  --wa:#25D366;
+  --wa2:#128C7E;
+  --wa-glow:rgba(37,211,102,0.15);
+  --amber:#f59e0b;
+  --amber-l:rgba(245,158,11,0.12);
+  --red:#ef4444;
+  --red-l:rgba(239,68,68,0.1);
+  --blue:#3b82f6;
+  --blue-l:rgba(59,130,246,0.1);
+  --purple:#a78bfa;
+  --purple-l:rgba(167,139,250,0.1);
+}
+
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* Ambient glow */
+body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(37,211,102,0.04) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:rgba(10,15,13,0.9);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;background:var(--wa);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--wa-glow)}
+.brand-mark svg{width:18px;height:18px;fill:#fff}
+.brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.3px}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.nav-tabs{display:flex;gap:2px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:3px}
+.nav-tab{padding:6px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{background:var(--wa);color:#000;box-shadow:0 0 16px var(--wa-glow)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.live-pill{display:flex;align-items:center;gap:6px;background:rgba(37,211,102,0.1);border:0.5px solid rgba(37,211,102,0.3);padding:5px 12px;border-radius:20px;font-size:11px;color:var(--wa);font-weight:600}
+.live-dot{width:6px;height:6px;background:var(--wa);border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 8px var(--wa)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav-btn{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:0.5px solid var(--border2);background:var(--card);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s}
+.nav-btn:hover{background:var(--card2);border-color:var(--wa)}
+.nav-btn.primary{background:var(--wa);color:#000;border-color:var(--wa);box-shadow:0 0 16px var(--wa-glow)}
+
+/* SECTIONS */
+.page{display:none;padding:24px 28px;position:relative;z-index:1;animation:fadeIn .3s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.kpi.green::before{background:linear-gradient(90deg,var(--wa),transparent)}
+.kpi.amber::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.kpi.red::before{background:linear-gradient(90deg,var(--red),transparent)}
+.kpi.blue::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.kpi-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-1px}
+.kpi-val.green{color:var(--wa)}
+.kpi-val.amber{color:var(--amber)}
+.kpi-val.red{color:var(--red)}
+.kpi-val.blue{color:var(--blue)}
+.kpi-trend{font-size:11px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:4px}
+.trend-up{color:var(--wa)}
+.trend-dn{color:var(--red)}
+
+/* SECTION HEADER */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sh-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sh-action{font-size:12px;color:var(--wa);cursor:pointer;font-weight:600}
+
+/* CARDS */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:20px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+
+/* PIPELINE */
+.pipeline{display:flex;gap:0;background:var(--card);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px}
+.pipe-stage{flex:1;padding:18px 16px;border-right:0.5px solid var(--border);position:relative}
+.pipe-stage:last-child{border-right:none}
+.pipe-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1}
+.pipe-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.pipe-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.pipe-bar{height:3px;border-radius:2px;margin-top:12px}
+.pipe-arrow{position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:14px;height:14px;background:var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--muted);z-index:2}
+
+/* TIMELINE */
+.tl{display:flex;flex-direction:column}
+.tl-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.tl-row:last-child{border-bottom:none}
+.tl-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tl-body{flex:1}
+.tl-name{font-size:13px;font-weight:600;color:var(--text)}
+.tl-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px;letter-spacing:.03em}
+.chip.green{background:rgba(37,211,102,0.12);color:var(--wa)}
+.chip.amber{background:var(--amber-l);color:var(--amber)}
+.chip.red{background:var(--red-l);color:var(--red)}
+.chip.blue{background:var(--blue-l);color:var(--blue)}
+.chip.purple{background:var(--purple-l);color:var(--purple)}
+
+/* PROGRESS BARS */
+.prog{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.prog-label{font-size:12px;color:var(--muted);width:80px;flex-shrink:0}
+.prog-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+.prog-val{font-size:12px;font-weight:600;width:32px;text-align:right}
+
+/* WA PHONE MOCKUP */
+.wa-phone{background:#111;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.1)}
+.wa-status-bar{background:#0a0a0a;padding:6px 12px;display:flex;justify-content:space-between;font-size:10px;color:#888}
+.wa-topbar{background:#1f2c34;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.wa-avatar-ph{width:32px;height:32px;background:var(--wa);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.wa-contact{flex:1}
+.wa-contact-name{font-size:13px;font-weight:600;color:#e9edef}
+.wa-contact-status{font-size:10px;color:#8696a0}
+.wa-chat{background:#0c1317;padding:12px;min-height:260px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.wa-msg{max-width:82%;padding:8px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;position:relative}
+.wa-msg.out{background:#005c4b;color:#e9edef;align-self:flex-end;border-radius:8px 0 8px 8px}
+.wa-msg.in{background:#202c33;color:#e9edef;align-self:flex-start;border-radius:0 8px 8px 8px}
+.wa-msg-time{font-size:9px;color:rgba(255,255,255,0.4);margin-top:3px;text-align:right}
+.wa-input{background:#1f2c34;padding:8px 12px;display:flex;align-items:center;gap:8px}
+.wa-input-box{flex:1;background:#2a3942;border-radius:20px;padding:7px 14px;font-size:11px;color:#aebac1}
+
+/* MEMBER TABLE */
+.table-wrap{overflow-x:auto;border-radius:12px;border:0.5px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--card2)}
+th{text-align:left;padding:11px 14px;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+td{padding:12px 14px;border-top:0.5px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.member-name{font-weight:600;font-size:13px}
+.member-phone{font-size:11px;color:var(--muted)}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}
+.act-btn{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s}
+.act-btn:hover{background:var(--card2);color:var(--wa);border-color:var(--wa)}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info-name{font-size:13px;font-weight:600}
+.toggle-info-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.tog{position:relative;width:38px;height:21px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:11px;transition:.3s;cursor:pointer}
+.tog-sl::before{content:'';position:absolute;width:15px;height:15px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.tog input:checked+.tog-sl{background:var(--wa);box-shadow:0 0 12px var(--wa-glow)}
+.tog input:checked+.tog-sl::before{transform:translateX(17px)}
+
+/* FLOW DIAGRAM */
+.flow-diagram{display:flex;flex-direction:column;gap:6px}
+.flow-node{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;border:0.5px solid var(--border)}
+.flow-node-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.flow-node-text{flex:1}
+.flow-node-name{font-size:12px;font-weight:600}
+.flow-node-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.flow-connector{display:flex;align-items:center;gap:8px;padding:0 14px}
+.flow-line{flex:1;height:1px;background:var(--border)}
+.flow-arrow-ic{font-size:11px;color:var(--muted)}
+
+/* PAYMENT ITEMS */
+.pay-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border)}
+.pay-item:last-child{border-bottom:none}
+.pay-avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.pay-info{flex:1}
+.pay-name{font-size:13px;font-weight:600}
+.pay-date{font-size:11px;color:var(--muted)}
+.pay-amt{font-family:'Syne',sans-serif;font-weight:800;font-size:15px}
+.pay-amt.success{color:var(--wa)}
+.pay-amt.pending{color:var(--amber)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:0.5px solid var(--border2);border-radius:18px;padding:28px;width:100%;max-width:480px;position:relative}
+.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:20px}
+.modal-close{position:absolute;top:18px;right:18px;background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.form-field{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--surface);border:0.5px solid var(--border2);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--wa);box-shadow:0 0 0 3px var(--wa-glow)}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%237a9080' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:12px;background:var(--wa);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:6px;transition:all .2s;box-shadow:0 0 20px var(--wa-glow)}
+.btn-primary:hover{background:#20ba59;box-shadow:0 0 30px var(--wa-glow)}
+
+/* BROADCAST SECTION */
+.broadcast-card{background:linear-gradient(135deg,rgba(37,211,102,0.08),rgba(18,140,126,0.05));border:0.5px solid rgba(37,211,102,0.2);border-radius:14px;padding:20px;margin-bottom:16px}
+.bc-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;margin-bottom:4px}
+.bc-sub{font-size:12px;color:var(--muted)}
+.bc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.bc-stat{text-align:center}
+.bc-stat-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--wa)}
+.bc-stat-label{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+
+/* SCROLL */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* SEARCH BAR */
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:9px 14px;margin-bottom:16px}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;font-size:13px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif}
+.search-bar input::placeholder{color:var(--muted)}
+.search-icon{color:var(--muted);font-size:13px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .nav-tabs{display:none}
+  .pipeline{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2.003A9.997 9.997 0 0 0 2.007 12c0 1.765.463 3.422 1.267 4.861L2 22l5.235-1.265A9.956 9.956 0 0 0 12.004 22C17.527 22 22 17.527 22 12.003S17.527 2.003 12.004 2.003z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">GymBot Pro</div>
+      <div class="brand-sub">Automation Command Center</div>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('overview')">Overview</button>
+    <button class="nav-tab" onclick="show('members')">Members</button>
+    <button class="nav-tab" onclick="show('flows')">Bot Flows</button>
+    <button class="nav-tab" onclick="show('payments')">Payments</button>
+    <button class="nav-tab" onclick="show('engage')">Engagement</button>
+    <button class="nav-tab" onclick="show('settings')">Settings</button>
+  </div>
+  <div class="nav-right">
+    <div class="live-pill"><div class="live-dot"></div>Live System</div>
+    <button class="nav-btn primary" onclick="openModal()">+ Add Member</button>
+  </div>
+</nav>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="page active" id="page-overview">
+  <div class="kpi-grid">
+    <div class="kpi green">
+      <div class="kpi-label">Total Members</div>
+      <div class="kpi-val green">1,284</div>
+      <div class="kpi-trend"><span class="trend-up">↑ 14</span> &nbsp;joined this week</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Renewals This Week</div>
+      <div class="kpi-val amber">43</div>
+      <div class="kpi-trend"><span class="trend-dn">2 overdue</span>&nbsp;· reminders sent</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Revenue (April)</div>
+      <div class="kpi-val green">₹4.8L</div>
+      <div class="kpi-trend"><span class="trend-up">↑ 18%</span>&nbsp;vs last month</div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpi-label">Messages Sent Today</div>
+      <div class="kpi-val blue">1,847</div>
+      <div class="kpi-trend"><span class="trend-up">97%</span>&nbsp;delivered</div>
+    </div>
+  </div>
+
+  <div class="sh"><div class="sh-title">Member Lifecycle Pipeline</div><div class="sh-action">View all →</div></div>
+  <div class="pipeline">
+    <div class="pipe-stage">
+      <div class="chip blue">Walk-in</div>
+      <div class="pipe-num" style="color:var(--blue)">28</div>
+      <div class="pipe-label">New Leads</div>
+      <div class="pipe-sub">Form not yet sent</div>
+      <div class="pipe-bar" style="background:rgba(59,130,246,0.4)"></div>
+      <div class="pipe-arrow">›</div>
+    </div>
+    <div class="pipe-stage">
+      <div class="chip purple">Form Sent</div>
+      <div class="pipe-num" style="color:var(--purple)">19</div>
+      <div class="pipe-label">Intake Pending</div>
+      <div class="pipe-sub">Awaiting submission</div>
+      <div class="pipe-bar" style="background:rgba(167,139,250,0.4)"></div>
+      <div class="pipe-arrow">›</div>
+    </div>
+    <div class="pipe-stage">
+      <div class="chip green">Active</div>
+      <div class="pipe-num" style="color:var(--wa)">1,198</div>
+      <div class="pipe-label">Active Members</div>
+      <div class="pipe-sub">WA linked & paying</div>
+      <div class="pipe-bar" style="background:rgba(37,211,102,0.4)"></div>
+      <div class="pipe-arrow">›</div>
+    </div>
+    <div class="pipe-stage">
+      <div class="chip amber">Due Soon</div>
+      <div class="pipe-num" style="color:var(--amber)">43</div>
+      <div class="pipe-label">Renewal Due</div>
+      <div class="pipe-sub">Auto-reminders active</div>
+      <div class="pipe-bar" style="background:rgba(245,158,11,0.4)"></div>
+      <div class="pipe-arrow">›</div>
+    </div>
+    <div class="pipe-stage">
+      <div class="chip red">Win-back</div>
+      <div class="pipe-num" style="color:var(--red)">16</div>
+      <div class="pipe-label">Lapsed</div>
+      <div class="pipe-sub">Re-engagement running</div>
+      <div class="pipe-bar" style="background:rgba(239,68,68,0.4)"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⚡ Live Automation Feed</div>
+      <div class="tl">
+        <div class="tl-row">
+          <div class="tl-icon" style="background:rgba(59,130,246,0.12)">📋</div>
+          <div class="tl-body"><div class="tl-name">Rahul Sharma — Intake form sent</div><div class="tl-meta">9:42 AM · Triggered by walk-in QR scan</div></div>
+          <span class="chip blue">Auto</span>
+        </div>
+        <div class="tl-row">
+          <div class="tl-icon" style="background:var(--amber-l)">💳</div>
+          <div class="tl-body"><div class="tl-name">Priya Mehta — Payment reminder #2</div><div class="tl-meta">10:15 AM · Due in 3 days · ₹1,999</div></div>
+          <span class="chip amber">Due</span>
+        </div>
+        <div class="tl-row">
+          <div class="tl-icon" style="background:rgba(37,211,102,0.12)">🎉</div>
+          <div class="tl-body"><div class="tl-name">Amit Verma — 30-day milestone</div><div class="tl-meta">11:00 AM · Celebration message sent</div></div>
+          <span class="chip green">Sent</span>
+        </div>
+        <div class="tl-row">
+          <div class="tl-icon" style="background:var(--purple-l)">📊</div>
+          <div class="tl-body"><div class="tl-name">Deepika Singh — Weekly diet plan</div><div class="tl-meta">11:45 AM · PDF auto-delivered</div></div>
+          <span class="chip purple">Auto</span>
+        </div>
+        <div class="tl-row">
+          <div class="tl-icon" style="background:rgba(37,211,102,0.12)">💳</div>
+          <div class="tl-body"><div class="tl-name">Amit Verma — Payment received ₹14,999</div><div class="tl-meta">9:15 AM · Annual renewal via WA link</div></div>
+          <span class="chip green">Paid</span>
+        </div>
+        <div class="tl-row">
+          <div class="tl-icon" style="background:rgba(59,130,246,0.12)">🌅</div>
+          <div class="tl-body"><div class="tl-name">Morning motivation — 1,198 members</div><div class="tl-meta">6:00 AM · Broadcast complete · 97% delivered</div></div>
+          <span class="chip blue">Batch</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 WhatsApp Delivery Stats</div>
+      <div style="margin-bottom:20px">
+        <div class="prog"><span class="prog-label">Delivered</span><div class="prog-track"><div class="prog-fill" style="width:97%;background:var(--wa)"></div></div><span class="prog-val" style="color:var(--wa)">97%</span></div>
+        <div class="prog"><span class="prog-label">Read</span><div class="prog-track"><div class="prog-fill" style="width:84%;background:var(--blue)"></div></div><span class="prog-val" style="color:var(--blue)">84%</span></div>
+        <div class="prog"><span class="prog-label">Replied</span><div class="prog-track"><div class="prog-fill" style="width:61%;background:var(--purple)"></div></div><span class="prog-val" style="color:var(--purple)">61%</span></div>
+        <div class="prog"><span class="prog-label">Paid (via link)</span><div class="prog-track"><div class="prog-fill" style="width:78%;background:var(--amber)"></div></div><span class="prog-val" style="color:var(--amber)">78%</span></div>
+        <div class="prog"><span class="prog-label">Renewals</span><div class="prog-track"><div class="prog-fill" style="width:89%;background:#e85d24"></div></div><span class="prog-val" style="color:#e85d24">89%</span></div>
+      </div>
+      <div style="padding:14px;background:var(--surface);border-radius:10px;border:0.5px solid var(--border)">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Today's Messages</div>
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--wa)">1,847</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">0 failures · 3 blocked by user</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MEMBERS ═══ -->
+<div class="page" id="page-members">
+  <div class="kpi-grid">
+    <div class="kpi green"><div class="kpi-label">Total Active</div><div class="kpi-val green">1,198</div><div class="kpi-trend"><span class="trend-up">93.3%</span>&nbsp;retention rate</div></div>
+    <div class="kpi blue"><div class="kpi-label">New This Week</div><div class="kpi-val blue">14</div><div class="kpi-trend">All auto-onboarded</div></div>
+    <div class="kpi amber"><div class="kpi-label">Avg Attendance</div><div class="kpi-val amber">4.2×</div><div class="kpi-trend">Per week per member</div></div>
+    <div class="kpi red"><div class="kpi-label">Churned (30d)</div><div class="kpi-val red">8</div><div class="kpi-trend"><span class="trend-dn">Win-back</span>&nbsp;campaign active</div></div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" placeholder="Search members by name, phone, or plan...">
+    <div style="display:flex;gap:6px">
+      <select style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
+        <option>All Status</option><option>Active</option><option>Expired</option><option>Due</option>
+      </select>
+      <select style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
+        <option>All Plans</option><option>Monthly</option><option>3 Month</option><option>Annual</option>
+      </select>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Member</th><th>Plan</th><th>Batch</th><th>Trainer</th>
+        <th>Joined</th><th>Expires</th><th>WA</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="members-tbody">
+        <tr>
+          <td><div class="member-name">Rahul Sharma</div><div class="member-phone">+91 98765 43210</div></td>
+          <td>Premium 3M</td><td>7:00 AM</td><td>Rajesh K.</td>
+          <td>Apr 15</td><td>Jul 15</td>
+          <td><span class="chip green">✓ Linked</span></td>
+          <td><span><span class="status-dot" style="background:#3b82f6"></span><span class="chip blue">New</span></span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">💳</button><button class="act-btn">✏️</button></td>
+        </tr>
+        <tr>
+          <td><div class="member-name">Priya Mehta</div><div class="member-phone">+91 87654 32109</div></td>
+          <td>Monthly</td><td>6:00 AM</td><td>Sunita S.</td>
+          <td>Mar 20</td><td>Apr 20</td>
+          <td><span class="chip green">✓ Linked</span></td>
+          <td><span class="status-dot" style="background:var(--amber)"></span><span class="chip amber">Due</span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn" style="color:var(--amber);border-color:var(--amber)">💳 Remind</button></td>
+        </tr>
+        <tr>
+          <td><div class="member-name">Amit Verma</div><div class="member-phone">+91 76543 21098</div></td>
+          <td>Annual</td><td>7:00 AM</td><td>Rajesh K.</td>
+          <td>Mar 15</td><td>Mar 2026</td>
+          <td><span class="chip green">✓ Linked</span></td>
+          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
+        </tr>
+        <tr>
+          <td><div class="member-name">Deepika Singh</div><div class="member-phone">+91 65432 10987</div></td>
+          <td>6-Month</td><td>8:00 AM</td><td>Vikram S.</td>
+          <td>Jan 10</td><td>Jul 10</td>
+          <td><span class="chip green">✓ Linked</span></td>
+          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
+        </tr>
+        <tr>
+          <td><div class="member-name">Karan Joshi</div><div class="member-phone">+91 54321 09876</div></td>
+          <td>Monthly</td><td>7:00 AM</td><td>Sunita S.</td>
+          <td>Feb 1</td><td>Apr 1</td>
+          <td><span class="chip amber">Inactive</span></td>
+          <td><span class="status-dot" style="background:var(--red)"></span><span class="chip red">Expired</span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn" style="color:var(--wa);border-color:var(--wa)">🔄 Win-back</button></td>
+        </tr>
+        <tr>
+          <td><div class="member-name">Sneha Patel</div><div class="member-phone">+91 43210 98765</div></td>
+          <td>3-Month</td><td>6:00 AM</td><td>Rajesh K.</td>
+          <td>Feb 15</td><td>May 15</td>
+          <td><span class="chip green">✓ Linked</span></td>
+          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
+          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ BOT FLOWS ═══ -->
+<div class="page" id="page-flows">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">🆕 New Member Onboarding Flow</div>
+      <div class="flow-diagram">
+        <div class="flow-node" style="border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.05)">
+          <div class="flow-node-icon" style="background:var(--blue-l)">📥</div>
+          <div class="flow-node-text"><div class="flow-node-name">Walk-in / QR Scan Detected</div><div class="flow-node-sub">Receptionist adds to system or member scans QR code</div></div>
+          <span class="chip blue">Trigger</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div class="flow-node" style="border-color:var(--purple-l)">
+          <div class="flow-node-icon" style="background:var(--purple-l)">📋</div>
+          <div class="flow-node-text"><div class="flow-node-name">Auto-send Intake Form via WhatsApp</div><div class="flow-node-sub">Template: gym_welcome_intake — Google Form link included</div></div>
+          <span class="chip purple">Auto</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div class="flow-node" style="border-color:var(--amber-l)">
+          <div class="flow-node-icon" style="background:var(--amber-l)">🤖</div>
+          <div class="flow-node-text"><div class="flow-node-name">Form Submitted → Auto-parse Data</div><div class="flow-node-sub">Goal, health info, age auto-extracted. Trainer assigned by goal</div></div>
+          <span class="chip amber">AI</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div class="flow-node" style="border-color:rgba(37,211,102,0.3);background:rgba(37,211,102,0.04)">
+          <div class="flow-node-icon" style="background:rgba(37,211,102,0.12)">✅</div>
+          <div class="flow-node-text"><div class="flow-node-name">CRM Updated + Welcome Kit Sent</div><div class="flow-node-sub">Schedule, trainer name, batch time, workout plan all sent</div></div>
+          <span class="chip green">Done</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 Payment Automation Flow</div>
+      <div class="flow-diagram">
+        <div class="flow-node" style="border-color:rgba(59,130,246,0.3)">
+          <div class="flow-node-icon" style="background:var(--blue-l)">📅</div>
+          <div class="flow-node-text"><div class="flow-node-name">System Detects: 7 Days to Expiry</div><div class="flow-node-sub">Cron runs daily at 10 AM — checks all members</div></div>
+          <span class="chip blue">Cron</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div class="flow-node" style="border-color:var(--amber-l)">
+          <div class="flow-node-icon" style="background:var(--amber-l)">📲</div>
+          <div class="flow-node-text"><div class="flow-node-name">Reminder #1 — Friendly Nudge</div><div class="flow-node-sub">Razorpay payment link auto-generated + sent via WA</div></div>
+          <span class="chip amber">Day 7</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div class="flow-node" style="border-color:rgba(245,158,11,0.5)">
+          <div class="flow-node-icon" style="background:var(--amber-l)">📲</div>
+          <div class="flow-node-text"><div class="flow-node-name">Reminder #2 — Special Offer Added</div><div class="flow-node-sub">Urgency + optional discount code included</div></div>
+          <span class="chip amber">Day 3</span>
+        </div>
+        <div class="flow-connector"><div class="flow-line"></div><div class="flow-arrow-ic">↓</div><div class="flow-line"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="flow-node" style="border-color:rgba(37,211,102,0.3)">
+            <div class="flow-node-icon" style="background:rgba(37,211,102,0.12)">✅</div>
+            <div class="flow-node-text"><div class="flow-node-name">Paid</div><div class="flow-node-sub">Auto-extend + receipt sent</div></div>
+          </div>
+          <div class="flow-node" style="border-color:var(--red-l)">
+            <div class="flow-node-icon" style="background:var(--red-l)">❌</div>
+            <div class="flow-node-text"><div class="flow-node-name">Unpaid</div><div class="flow-node-sub">Access freeze + final notice</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚙️ Automation Control Panel</div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">🌅 Morning Motivation Blast</div><div class="toggle-info-sub">Sends daily 6:00 AM to all active members — personalized by name & batch</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">📋 New Member Auto-Onboarding</div><div class="toggle-info-sub">Auto-sends intake form + welcome kit when new member is added</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">💳 Payment Reminder Sequence (7→3→1 days)</div><div class="toggle-info-sub">Auto-generates Razorpay links + sends via WhatsApp on schedule</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">🥗 Weekly Diet Plan Delivery (Sunday 8 AM)</div><div class="toggle-info-sub">Auto-sends personalized PDF diet plan to all active members</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">🏆 Milestone & Birthday Messages</div><div class="toggle-info-sub">Auto-sends at 7, 30, 60, 90, 180, 365 day milestones and on birthdays</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">🌆 Evening Miss-You Check (6 PM)</div><div class="toggle-info-sub">Sends a gentle nudge to members who didn't check in today</div></div>
+      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-info-name">🔄 Win-Back Campaign (Monday 9 AM)</div><div class="toggle-info-sub">Sends offer code to members expired more than 7 days ago</div></div>
+      <label class="tog"><input type="checkbox"><span class="tog-sl"></span></label>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENTS ═══ -->
+<div class="page" id="page-payments">
+  <div class="kpi-grid">
+    <div class="kpi green"><div class="kpi-label">Revenue (April)</div><div class="kpi-val green">₹4.8L</div><div class="kpi-trend"><span class="trend-up">89%</span>&nbsp;collected</div></div>
+    <div class="kpi amber"><div class="kpi-label">Pending</div><div class="kpi-val amber">₹62k</div><div class="kpi-trend">43 members · reminders sent</div></div>
+    <div class="kpi blue"><div class="kpi-label">Via WA Link</div><div class="kpi-val blue">78%</div><div class="kpi-trend">Zero manual collection</div></div>
+    <div class="kpi green"><div class="kpi-label">Avg Reminders</div><div class="kpi-val green">1.4×</div><div class="kpi-trend">Per renewal collected</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">✅ Recent Payments</div>
+      <div class="pay-item"><div class="pay-avatar" style="background:rgba(37,211,102,0.12)">😊</div><div class="pay-info"><div class="pay-name">Amit Verma</div><div class="pay-date">Today 9:15 AM · Annual renewal · via WA link</div></div><div class="pay-amt success">₹14,999</div></div>
+      <div class="pay-item"><div class="pay-avatar" style="background:var(--blue-l)">😎</div><div class="pay-info"><div class="pay-name">Sneha Patel</div><div class="pay-date">Yesterday · Monthly · via UPI</div></div><div class="pay-amt success">₹1,999</div></div>
+      <div class="pay-item"><div class="pay-avatar" style="background:var(--purple-l)">🙂</div><div class="pay-info"><div class="pay-name">Rohit Kumar</div><div class="pay-date">Apr 17 · 6-Month plan · via WA link</div></div><div class="pay-amt success">₹7,499</div></div>
+      <div class="pay-item"><div class="pay-avatar" style="background:rgba(37,211,102,0.12)">😐</div><div class="pay-info"><div class="pay-name">Neha Sharma</div><div class="pay-date">Apr 16 · Monthly · via WA link</div></div><div class="pay-amt success">₹1,999</div></div>
+      <div style="margin-top:14px;padding:12px;background:rgba(37,211,102,0.05);border:0.5px solid rgba(37,211,102,0.2);border-radius:10px;font-size:12px;color:var(--wa)">
+        🤖 Auto-payment confirmation + receipt sent to all 4 members instantly
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Pending & Overdue</div>
+      <div class="pay-item"><div class="pay-avatar" style="background:var(--amber-l)">😤</div><div class="pay-info"><div class="pay-name">Priya Mehta</div><div class="pay-date">Due Apr 20 · Reminder #2 sent · 3 days left</div></div><div class="pay-amt pending">₹1,999</div></div>
+      <div class="pay-item"><div class="pay-avatar" style="background:var(--red-l)">😔</div><div class="pay-info"><div class="pay-name">Karan Joshi</div><div class="pay-date">Expired Apr 1 · Win-back running · 18d overdue</div></div><div class="pay-amt" style="color:var(--red)">₹1,999</div></div>
+      <div class="pay-item"><div class="pay-avatar" style="background:var(--amber-l)">😶</div><div class="pay-info"><div class="pay-name">Vikram Rao</div><div class="pay-date">Due Apr 22 · Reminder #1 sent · 5 days left</div></div><div class="pay-amt pending">₹3,999</div></div>
+      <div style="margin-top:14px;padding:12px;background:rgba(245,158,11,0.05);border:0.5px solid rgba(245,158,11,0.2);border-radius:10px;font-size:12px;color:var(--amber)">
+        🤖 Reminder #3 will auto-run at 10 AM tomorrow for all 43 pending
+      </div>
+      <button style="width:100%;margin-top:10px;padding:10px;background:transparent;border:0.5px solid var(--wa);color:var(--wa);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">
+        Send Manual Reminder to All Now →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ENGAGEMENT ═══ -->
+<div class="page" id="page-engage">
+  <div class="broadcast-card">
+    <div class="bc-title">WhatsApp Engagement Engine — Active</div>
+    <div class="bc-sub">1,847 messages sent today · Zero manual intervention · 100% automated</div>
+    <div class="bc-stats">
+      <div class="bc-stat"><div class="bc-stat-val">91%</div><div class="bc-stat-label">Open Rate</div></div>
+      <div class="bc-stat"><div class="bc-stat-val">61%</div><div class="bc-stat-label">Reply Rate</div></div>
+      <div class="bc-stat"><div class="bc-stat-val">78%</div><div class="bc-stat-label">Payment Rate</div></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">📨 Message Performance by Type</div>
+      <div class="tl">
+        <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">🌅</div><div class="tl-body"><div class="tl-name">Morning Motivation</div><div class="tl-meta">Daily 6:00 AM · All 1,198 active members</div></div><span style="color:var(--wa);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">91%</span></div>
+        <div class="tl-row"><div class="tl-icon" style="background:rgba(59,130,246,0.12)">🏋️</div><div class="tl-body"><div class="tl-name">Workout of the Day</div><div class="tl-meta">Daily 7:00 AM · By batch group</div></div><span style="color:var(--blue);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">87%</span></div>
+        <div class="tl-row"><div class="tl-icon" style="background:var(--purple-l)">🥗</div><div class="tl-body"><div class="tl-name">Weekly Diet Plan (PDF)</div><div class="tl-meta">Sunday 8:00 AM · All members</div></div><span style="color:var(--purple);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">79%</span></div>
+        <div class="tl-row"><div class="tl-icon" style="background:var(--amber-l)">🏆</div><div class="tl-body"><div class="tl-name">Milestone Celebrations</div><div class="tl-meta">Event-triggered · 30/60/90/180/365 days</div></div><span style="color:var(--amber);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">96%</span></div>
+        <div class="tl-row"><div class="tl-icon" style="background:var(--red-l)">🔔</div><div class="tl-body"><div class="tl-name">Payment Reminders</div><div class="tl-meta">7d, 3d, 1d before expiry · With pay link</div></div><span style="color:var(--wa);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">84%</span></div>
+        <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">🎂</div><div class="tl-body"><div class="tl-name">Birthday Wishes</div><div class="tl-meta">Auto-detected from DOB · Free PT session offer</div></div><span style="color:var(--wa);font-family:'Syne',sans-serif;font-weight:800;font-size:15px">100%</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">🤖 Live Bot Conversation</div>
+        <div class="wa-phone">
+          <div class="wa-status-bar"><span>9:41</span><span>●●● 4G</span></div>
+          <div class="wa-topbar">
+            <div class="wa-avatar-ph">💪</div>
+            <div class="wa-contact"><div class="wa-contact-name">GymBot Pro</div><div class="wa-contact-status">online</div></div>
+          </div>
+          <div class="wa-chat">
+            <div class="wa-msg out">Hi! What's today's workout? 💪<div class="wa-msg-time">9:15 AM ✓✓</div></div>
+            <div class="wa-msg in">
+              <b>Today's Workout — Chest & Triceps</b> 🔥<br><br>
+              1. Bench Press — 4×10<br>
+              2. Incline DB Press — 3×12<br>
+              3. Cable Flyes — 3×15<br>
+              4. Tricep Dips — 3×12<br>
+              5. Skull Crushers — 3×12<br><br>
+              💡 Tip: Focus on the squeeze!<br>
+              ⏰ Your 7 AM batch starts in 45 mins!
+              <div class="wa-msg-time">9:15 AM ✓✓</div>
+            </div>
+            <div class="wa-msg out">Also check my membership status<div class="wa-msg-time">9:16 AM ✓✓</div></div>
+            <div class="wa-msg in">
+              ✅ <b>Membership Status</b><br><br>
+              👤 Rahul Sharma<br>
+              📋 Plan: Annual<br>
+              📅 Expires: Mar 15, 2026<br>
+              ⏳ Days Left: <b>331 days</b><br>
+              🏋️ Batch: 7:00 AM<br>
+              👨‍🏫 Trainer: Rajesh Kumar
+              <div class="wa-msg-time">9:16 AM ✓✓</div>
+            </div>
+          </div>
+          <div class="wa-input">
+            <div class="wa-input-box">Type a message...</div>
+            <span style="font-size:18px">📷</span>
+            <span style="font-size:18px;color:var(--wa)">🎤</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div class="page" id="page-settings">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⚙️ System Configuration</div>
+      <div class="form-field"><label class="form-label">Gym Name</label><input class="form-input" value="FitZone Gym" type="text"></div>
+      <div class="form-field"><label class="form-label">WhatsApp Business Number</label><input class="form-input" value="+91 98765 00000" type="text"></div>
+      <div class="form-field"><label class="form-label">Gym Website</label><input class="form-input" value="https://fitzonegym.in" type="text"></div>
+      <div class="form-field"><label class="form-label">Intake Form URL</label><input class="form-input" value="https://forms.gle/gymintake" type="text"></div>
+      <button class="btn-primary">Save Settings</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Membership Plans</div>
+      <div class="tl">
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">Monthly Plan</div><div class="tl-meta">30 days · ₹1,999</div></div><button class="act-btn">Edit</button></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">3-Month Plan</div><div class="tl-meta">90 days · ₹4,999</div></div><button class="act-btn">Edit</button></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">6-Month Plan</div><div class="tl-meta">180 days · ₹7,999</div></div><button class="act-btn">Edit</button></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">Annual Plan</div><div class="tl-meta">365 days · ₹14,999</div></div><button class="act-btn">Edit</button></div>
+      </div>
+      <button class="btn-primary" style="margin-top:14px">+ Add New Plan</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔗 Integration Status</div>
+    <div class="tl">
+      <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">WhatsApp Business API — Connected</div><div class="tl-meta">Phone ID: 1234567890 · Webhook active · 97% delivery</div></div><span class="chip green">Live</span></div>
+      <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">Razorpay — Connected</div><div class="tl-meta">Live mode · ₹4.8L processed this month</div></div><span class="chip green">Live</span></div>
+      <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">Supabase Database — Connected</div><div class="tl-meta">Mumbai region · 1,284 records · 99.9% uptime</div></div><span class="chip green">Live</span></div>
+      <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">Google Forms — Connected</div><div class="tl-meta">Form webhook active · 847 submissions processed</div></div><span class="chip green">Live</span></div>
+      <div class="tl-row"><div class="tl-icon" style="background:var(--amber-l)">⚠️</div><div class="tl-body"><div class="tl-name">WATI (optional WA provider) — Not configured</div><div class="tl-meta">Alternative to direct Meta API · easier setup</div></div><span class="chip amber">Optional</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MEMBER MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">+ Add New Member</div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" placeholder="Rahul Sharma" type="text"></div>
+      <div class="form-field"><label class="form-label">WhatsApp Number</label><input class="form-input" placeholder="9876543210" type="tel"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Email (optional)</label><input class="form-input" placeholder="rahul@gmail.com" type="email"></div>
+      <div class="form-field"><label class="form-label">Date of Birth</label><input class="form-input" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label class="form-label">Membership Plan</label>
+        <select class="form-input form-select">
+          <option>Monthly — ₹1,999</option>
+          <option>3-Month — ₹4,999</option>
+          <option>6-Month — ₹7,999</option>
+          <option>Annual — ₹14,999</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Batch Timing</label>
+        <select class="form-input form-select">
+          <option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option>
+          <option>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-label">Fitness Goal</label>
+      <select class="form-input form-select">
+        <option>Weight Loss</option><option>Build Muscle</option><option>General Fitness</option><option>Endurance</option>
+      </select>
+    </div>
+    <div style="font-size:12px;color:var(--muted);padding:10px;background:rgba(37,211,102,0.05);border:0.5px solid rgba(37,211,102,0.15);border-radius:8px;margin-bottom:14px">
+      🤖 On save: WhatsApp welcome message + intake form auto-sent. Trainer auto-assigned. CRM updated instantly.
+    </div>
+    <button class="btn-primary">✅ Add Member & Start Automation</button>
+  </div>
+</div>
+
+<script>
+function show(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+}
+function openModal() {
+  document.getElementById('addModal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
