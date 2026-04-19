@@ -1,11 +1,13 @@
 /**
  * GymBot Pro — Main Backend Server
  * Node.js + Express + WhatsApp Business API
- * 
+ *
  * Handles: Member onboarding, payments, engagement, automation triggers
  */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
