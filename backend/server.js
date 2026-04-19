@@ -27,9 +27,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Used by Railway health checks & quick "is the app up?" tests
+// Railway / probes often use HEAD (not only GET) — both must return 200
 app.get('/health', (req, res) => {
   res.status(200).type('text').send('ok');
+});
+app.head('/health', (req, res) => {
+  res.status(200).end();
 });
 
 // ─────────────────────────────────────────
@@ -276,13 +279,25 @@ app.use((err, req, res, next) => {
   res.sendStatus(500);
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+
+process.on('uncaughtException', (err) => {
+  console.error('uncaughtException', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('unhandledRejection', reason);
+});
+
 // Bind all interfaces — required on Railway/Docker or the edge proxy returns 502
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 GymBot Pro server running on port ${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 GymBot Pro listening on http://0.0.0.0:${PORT} (PORT env=${process.env.PORT ?? 'unset'})`);
   console.log(`📱 WhatsApp webhook: POST /webhook/whatsapp`);
   console.log(`💳 Payment webhook: POST /webhook/payment`);
-  console.log(`❤️ Health: GET /health`);
+  console.log(`❤️ Health: GET /health or HEAD /health`);
+});
+
+server.on('error', (err) => {
+  console.error('Server failed to listen:', err);
 });
 
 module.exports = app;
