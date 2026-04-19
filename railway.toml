@@ -1,0 +1,4 @@
+# https://docs.railway.app/guides/config-as-code
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300

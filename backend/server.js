@@ -19,8 +19,18 @@ const automation = require('./services/automation');
 const payments = require('./services/payments');
 
 const app = express();
-app.use(express.json());
+app.set('trust proxy', 1);
+app.use(express.json({ limit: '2mb' }));
 app.use(cors());
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Used by Railway health checks & quick "is the app up?" tests
+app.get('/health', (req, res) => {
+  res.status(200).type('text').send('ok');
+});
 
 // ─────────────────────────────────────────
 // WEBHOOK — WhatsApp incoming messages
@@ -90,16 +100,15 @@ app.post('/webhook/payment', async (req, res) => {
   }
 });
 
-// Google Forms submission callback
-app.post('/webhook/form', async (req, res) => {
-  try {
-    const formData = req.body;
-    await automation.handleNewMemberFormSubmission(formData);
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Form webhook error:', err);
-    res.sendStatus(500);
-  }
+// Google Forms submission — respond immediately so proxies (Railway) always get a fast 200
+app.post('/webhook/form', (req, res) => {
+  const formData = req.body;
+  res.sendStatus(200);
+  setImmediate(() => {
+    automation.handleNewMemberFormSubmission(formData).catch((err) => {
+      console.error('Form webhook error:', err);
+    });
+  });
 });
 
 // ─────────────────────────────────────────
@@ -256,12 +265,24 @@ cron.schedule('0 9 * * 1', async () => {
 // START SERVER
 // ─────────────────────────────────────────
 
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+  if (err && err.status === 400 && 'body' in err) {
+    return res.status(400).send('Invalid JSON');
+  }
+  console.error(err);
+  res.sendStatus(500);
+});
+
 const PORT = process.env.PORT || 3000;
 // Bind all interfaces — required on Railway/Docker or the edge proxy returns 502
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 GymBot Pro server running on port ${PORT}`);
   console.log(`📱 WhatsApp webhook: POST /webhook/whatsapp`);
   console.log(`💳 Payment webhook: POST /webhook/payment`);
+  console.log(`❤️ Health: GET /health`);
 });
 
 module.exports = app;
