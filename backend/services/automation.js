@@ -336,17 +336,48 @@ async function triggerOnboarding(member) {
   await db.logAutomation(member.id, 'onboarding_started');
 }
 
+function normalizeFormGoal(goal) {
+  const s = String(goal || 'general')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+  const allowed = ['weightloss', 'muscle', 'general', 'endurance'];
+  if (allowed.includes(s)) return s;
+  if (s.includes('weight') || s.includes('loss')) return 'weightloss';
+  if (s.includes('muscle')) return 'muscle';
+  if (s.includes('endurance')) return 'endurance';
+  return 'general';
+}
+
 async function handleNewMemberFormSubmission(formData) {
   const phone = cleanPhone(formData.phone);
-  const member = await db.getMemberByPhone(phone);
+  let member = await db.getMemberByPhone(phone);
+  let created = false;
+  const goalNorm = normalizeFormGoal(formData.goal);
+
   if (!member) {
-    console.warn('Form webhook: no member in DB for phone', phone, '(member must exist before form submit)');
-    return { ok: false, reason: 'member_not_found' };
+    const defaultPlan = process.env.DEFAULT_FORM_PLAN || 'monthly';
+    try {
+      member = await db.createMember({
+        name: formData.name || 'New Member',
+        phone: formData.phone,
+        plan: defaultPlan,
+        planName: getPlanName(defaultPlan),
+        fitnessGoal: goalNorm,
+        batchTime: '7:00 AM',
+      });
+      created = true;
+      console.log('Form webhook: created new member from form', member.id);
+    } catch (err) {
+      member = await db.getMemberByPhone(phone);
+      if (!member) {
+        console.error('Form webhook: create failed', err.message);
+        return { ok: false, reason: 'create_failed', detail: err.message };
+      }
+    }
   }
 
-  // Update member from form data
   await db.updateMember(member.id, {
-    fitnessGoal: formData.goal,
+    fitnessGoal: goalNorm,
     healthIssues: formData.healthIssues,
     age: formData.age,
     weight: formData.weight,
@@ -355,18 +386,21 @@ async function handleNewMemberFormSubmission(formData) {
     formSubmittedAt: new Date(),
   });
 
-  // Assign trainer based on goal
-  const trainer = await db.assignTrainer(member.id, formData.goal);
+  const trainer = await db.assignTrainer(member.id, goalNorm);
 
-  // Small delay then send confirmation
   await delay(2000);
+  const r = await db.getMemberById(member.id);
   await whatsapp.sendMembershipConfirmation({
-    ...member,
+    name: r.name,
+    phone: r.phone,
+    plan: r.plan,
+    planName: getPlanName(r.plan),
+    expiryDate: r.expiry_date,
+    batchTime: r.batch_time,
     trainerName: trainer?.name,
-    planName: getPlanName(member.plan),
   });
 
-  return { ok: true, memberId: member.id };
+  return { ok: true, memberId: member.id, created };
 }
 
 async function sendMorningMotivation(members) {
