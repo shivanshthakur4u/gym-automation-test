@@ -257,7 +257,8 @@ cron.schedule('0 9 * * 1', async () => {
 // ─────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+// Bind all interfaces — required on Railway/Docker or the edge proxy returns 502
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 GymBot Pro server running on port ${PORT}`);
   console.log(`📱 WhatsApp webhook: POST /webhook/whatsapp`);
   console.log(`💳 Payment webhook: POST /webhook/payment`);
