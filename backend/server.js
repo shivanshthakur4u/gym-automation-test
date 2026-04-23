@@ -30,6 +30,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Dashboard (static HTML) — same host as API: set “API base URL” to your Render URL (no CORS issues)
+const dashboardPath = path.join(__dirname, '..', 'dashboard.html');
+app.get(['/', '/dashboard'], (req, res) => {
+  res.sendFile(dashboardPath, (err) => {
+    if (err) {
+      console.error('dashboard sendFile:', err.message);
+      res.status(404).type('text').send('dashboard.html not found on server');
+    }
+  });
+});
+
 // Railway / probes often use HEAD (not only GET) — both must return 200
 app.get('/health', (req, res) => {
   res.status(200).type('text').send('ok');
@@ -517,6 +528,7 @@ process.on('unhandledRejection', (reason) => {
 // Bind all interfaces — required on Railway/Docker or the edge proxy returns 502
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 GymBot Pro listening on http://0.0.0.0:${PORT} (PORT env=${process.env.PORT ?? 'unset'})`);
+  console.log(`📊 Dashboard: GET / or /dashboard`);
   console.log(`📱 WhatsApp webhook: POST /webhook/whatsapp`);
   console.log(`💳 Payment webhook: POST /webhook/payment`);
   console.log(`❤️ Health: GET /health or HEAD /health`);
