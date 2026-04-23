@@ -31,7 +31,13 @@ function requireAdmin(req, res, next) {
         error: 'ADMIN_API_KEY is not set and JWT verification failed. Set ADMIN_API_KEY or use a valid JWT.',
       });
     }
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized',
+      hint:
+        'Do not set JWT_SECRET to your access token. JWT_SECRET must be a fixed random signing string. ' +
+        'If you changed ADMIN_API_KEY or JWT_SECRET, click Get JWT again, or use Authorization: Bearer <ADMIN_API_KEY>.',
+    });
   }
 }
 

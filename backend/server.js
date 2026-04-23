@@ -159,7 +159,7 @@ app.post('/webhook/form', async (req, res) => {
 // MEMBER API
 // ─────────────────────────────────────────
 
-app.get('/api/members', async (req, res) => {
+app.get('/api/members', requireAdmin, async (req, res) => {
   try {
     const { status, page = 1, limit = 50, tenantId = defaultTenantId() } = req.query;
     const members = await db.getMembers({ status, page, limit, tenantId });
@@ -169,7 +169,7 @@ app.get('/api/members', async (req, res) => {
   }
 });
 
-app.post('/api/members', [
+app.post('/api/members', requireAdmin, [
   body('name').notEmpty(),
   body('phone').matches(/^[6-9]\d{9}$/),
   body('plan').isIn(['monthly', '3month', '6month', 'annual']),
@@ -187,7 +187,7 @@ app.post('/api/members', [
   }
 });
 
-app.get('/api/members/:id', async (req, res) => {
+app.get('/api/members/:id', requireAdmin, async (req, res) => {
   try {
     const member = await db.getMemberById(req.params.id);
     if (!member) return res.status(404).json({ error: 'Member not found' });
@@ -197,7 +197,7 @@ app.get('/api/members/:id', async (req, res) => {
   }
 });
 
-app.patch('/api/members/:id', async (req, res) => {
+app.patch('/api/members/:id', requireAdmin, async (req, res) => {
   try {
     const member = await db.updateMember(req.params.id, req.body);
     res.json({ success: true, data: member });
@@ -210,7 +210,7 @@ app.patch('/api/members/:id', async (req, res) => {
 // MANUAL TRIGGERS (from dashboard)
 // ─────────────────────────────────────────
 
-app.post('/api/trigger/send-message', async (req, res) => {
+app.post('/api/trigger/send-message', requireAdmin, async (req, res) => {
   try {
     const { memberId, templateName, variables } = req.body;
     const member = await db.getMemberById(memberId);
@@ -221,7 +221,7 @@ app.post('/api/trigger/send-message', async (req, res) => {
   }
 });
 
-app.post('/api/trigger/broadcast', async (req, res) => {
+app.post('/api/trigger/broadcast', requireAdmin, async (req, res) => {
   try {
     const { filter = {}, templateName, variables, tenantId } = req.body;
     const members = await db.getMembers({ ...filter, tenantId: tenantId || defaultTenantId() });
@@ -232,7 +232,7 @@ app.post('/api/trigger/broadcast', async (req, res) => {
   }
 });
 
-app.post('/api/trigger/payment-reminder/:memberId', async (req, res) => {
+app.post('/api/trigger/payment-reminder/:memberId', requireAdmin, async (req, res) => {
   try {
     const member = await db.getMemberById(req.params.memberId);
     await payments.sendPaymentReminder(member);
@@ -246,7 +246,7 @@ app.post('/api/trigger/payment-reminder/:memberId', async (req, res) => {
 // ANALYTICS
 // ─────────────────────────────────────────
 
-app.get('/api/analytics/overview', async (req, res) => {
+app.get('/api/analytics/overview', requireAdmin, async (req, res) => {
   try {
     const tenantId = req.query.tenantId || defaultTenantId();
     const stats = await db.getAnalyticsOverview(tenantId);
@@ -256,7 +256,7 @@ app.get('/api/analytics/overview', async (req, res) => {
   }
 });
 
-app.get('/api/analytics/messages', async (req, res) => {
+app.get('/api/analytics/messages', requireAdmin, async (req, res) => {
   try {
     const { from, to } = req.query;
     const stats = await db.getMessageStats({ from, to });

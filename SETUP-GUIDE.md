@@ -179,9 +179,12 @@ While waiting, your bot can still respond to messages people send first (free-fo
 ## STEP 7 — Add First Member & Test (20 min)
 
 ### Test the full flow:
+Members, analytics, and manual triggers require admin auth: `Authorization: Bearer <ADMIN_API_KEY>` (or a JWT from `POST /api/auth/login`).
+
 ```bash
 # Test API: Add a member
 curl -X POST https://yourdomain.com/api/members \
+  -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Member",
@@ -197,7 +200,8 @@ This should:
 
 ### Test payment reminder:
 ```bash
-curl -X POST https://yourdomain.com/api/trigger/payment-reminder/MEMBER_ID
+curl -X POST https://yourdomain.com/api/trigger/payment-reminder/MEMBER_ID \
+  -H "Authorization: Bearer YOUR_ADMIN_API_KEY"
 ```
 
 ---
@@ -208,7 +212,7 @@ curl -X POST https://yourdomain.com/api/trigger/payment-reminder/MEMBER_ID
 Your dashboard frontend (gymbot-dashboard.html) runs at your domain.
 
 ### Adding Members Manually
-Use the dashboard or API:
+Use the dashboard (saves the admin key or JWT) or API with `Authorization: Bearer`:
 ```
 POST /api/members
 ```

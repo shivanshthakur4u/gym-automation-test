@@ -256,121 +256,85 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 
 <!-- ═══ OVERVIEW ═══ -->
 <div class="page active" id="page-overview">
+  <p id="dash-hint" style="font-size:12px;color:var(--muted);margin:0 0 14px">Set <strong>API base URL</strong> in Settings to load live numbers. Until then, placeholders below are cosmetic.</p>
   <div class="kpi-grid">
     <div class="kpi green">
       <div class="kpi-label">Total Members</div>
-      <div class="kpi-val green">1,284</div>
-      <div class="kpi-trend"><span class="trend-up">↑ 14</span> &nbsp;joined this week</div>
-    </div>
-    <div class="kpi amber">
-      <div class="kpi-label">Renewals This Week</div>
-      <div class="kpi-val amber">43</div>
-      <div class="kpi-trend"><span class="trend-dn">2 overdue</span>&nbsp;· reminders sent</div>
+      <div class="kpi-val green" id="ov-kpi-total">—</div>
+      <div class="kpi-trend" id="ov-kpi-total-trend"><span class="trend-up">—</span> &nbsp;in database</div>
     </div>
     <div class="kpi green">
-      <div class="kpi-label">Revenue (April)</div>
-      <div class="kpi-val green">₹4.8L</div>
-      <div class="kpi-trend"><span class="trend-up">↑ 18%</span>&nbsp;vs last month</div>
+      <div class="kpi-label">Active</div>
+      <div class="kpi-val green" id="ov-kpi-active">—</div>
+      <div class="kpi-trend" id="ov-kpi-active-trend">status = active</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Due (this week)</div>
+      <div class="kpi-val amber" id="ov-kpi-due">—</div>
+      <div class="kpi-trend" id="ov-kpi-due-trend">expiring soon</div>
     </div>
     <div class="kpi blue">
-      <div class="kpi-label">Messages Sent Today</div>
-      <div class="kpi-val blue">1,847</div>
-      <div class="kpi-trend"><span class="trend-up">97%</span>&nbsp;delivered</div>
+      <div class="kpi-label">New (this month)</div>
+      <div class="kpi-val blue" id="ov-kpi-newm">—</div>
+      <div class="kpi-trend" id="ov-kpi-newm-trend">by join date</div>
     </div>
   </div>
 
-  <div class="sh"><div class="sh-title">Member Lifecycle Pipeline</div><div class="sh-action">View all →</div></div>
-  <div class="pipeline">
+  <div class="sh"><div class="sh-title">Member lifecycle (from API)</div><div class="sh-action" onclick="show('members')">View all →</div></div>
+  <div class="pipeline" id="ov-pipeline">
     <div class="pipe-stage">
-      <div class="chip blue">Walk-in</div>
-      <div class="pipe-num" style="color:var(--blue)">28</div>
-      <div class="pipe-label">New Leads</div>
-      <div class="pipe-sub">Form not yet sent</div>
+      <div class="chip blue">Pending</div>
+      <div class="pipe-num" id="ov-p1" style="color:var(--blue)">—</div>
+      <div class="pipe-label">Intake / new</div>
+      <div class="pipe-sub">status pending</div>
       <div class="pipe-bar" style="background:rgba(59,130,246,0.4)"></div>
       <div class="pipe-arrow">›</div>
     </div>
     <div class="pipe-stage">
-      <div class="chip purple">Form Sent</div>
-      <div class="pipe-num" style="color:var(--purple)">19</div>
-      <div class="pipe-label">Intake Pending</div>
-      <div class="pipe-sub">Awaiting submission</div>
-      <div class="pipe-bar" style="background:rgba(167,139,250,0.4)"></div>
-      <div class="pipe-arrow">›</div>
-    </div>
-    <div class="pipe-stage">
       <div class="chip green">Active</div>
-      <div class="pipe-num" style="color:var(--wa)">1,198</div>
-      <div class="pipe-label">Active Members</div>
-      <div class="pipe-sub">WA linked & paying</div>
+      <div class="pipe-num" id="ov-p2" style="color:var(--wa)">—</div>
+      <div class="pipe-label">Active members</div>
+      <div class="pipe-sub">Currently active</div>
       <div class="pipe-bar" style="background:rgba(37,211,102,0.4)"></div>
       <div class="pipe-arrow">›</div>
     </div>
     <div class="pipe-stage">
-      <div class="chip amber">Due Soon</div>
-      <div class="pipe-num" style="color:var(--amber)">43</div>
-      <div class="pipe-label">Renewal Due</div>
-      <div class="pipe-sub">Auto-reminders active</div>
+      <div class="chip amber">Due soon</div>
+      <div class="pipe-num" id="ov-p3" style="color:var(--amber)">—</div>
+      <div class="pipe-label">Renews this week</div>
+      <div class="pipe-sub">expiry in range</div>
       <div class="pipe-bar" style="background:rgba(245,158,11,0.4)"></div>
       <div class="pipe-arrow">›</div>
     </div>
     <div class="pipe-stage">
-      <div class="chip red">Win-back</div>
-      <div class="pipe-num" style="color:var(--red)">16</div>
+      <div class="chip red">Expired</div>
+      <div class="pipe-num" id="ov-p4" style="color:var(--red)">—</div>
       <div class="pipe-label">Lapsed</div>
-      <div class="pipe-sub">Re-engagement running</div>
+      <div class="pipe-sub">status expired</div>
       <div class="pipe-bar" style="background:rgba(239,68,68,0.4)"></div>
     </div>
   </div>
 
   <div class="grid2">
     <div class="card">
-      <div class="card-title">⚡ Live Automation Feed</div>
-      <div class="tl">
+      <div class="card-title">⚡ Data source</div>
+      <div class="tl" id="ov-feed">
         <div class="tl-row">
-          <div class="tl-icon" style="background:rgba(59,130,246,0.12)">📋</div>
-          <div class="tl-body"><div class="tl-name">Rahul Sharma — Intake form sent</div><div class="tl-meta">9:42 AM · Triggered by walk-in QR scan</div></div>
-          <span class="chip blue">Auto</span>
-        </div>
-        <div class="tl-row">
-          <div class="tl-icon" style="background:var(--amber-l)">💳</div>
-          <div class="tl-body"><div class="tl-name">Priya Mehta — Payment reminder #2</div><div class="tl-meta">10:15 AM · Due in 3 days · ₹1,999</div></div>
-          <span class="chip amber">Due</span>
-        </div>
-        <div class="tl-row">
-          <div class="tl-icon" style="background:rgba(37,211,102,0.12)">🎉</div>
-          <div class="tl-body"><div class="tl-name">Amit Verma — 30-day milestone</div><div class="tl-meta">11:00 AM · Celebration message sent</div></div>
-          <span class="chip green">Sent</span>
-        </div>
-        <div class="tl-row">
-          <div class="tl-icon" style="background:var(--purple-l)">📊</div>
-          <div class="tl-body"><div class="tl-name">Deepika Singh — Weekly diet plan</div><div class="tl-meta">11:45 AM · PDF auto-delivered</div></div>
-          <span class="chip purple">Auto</span>
-        </div>
-        <div class="tl-row">
-          <div class="tl-icon" style="background:rgba(37,211,102,0.12)">💳</div>
-          <div class="tl-body"><div class="tl-name">Amit Verma — Payment received ₹14,999</div><div class="tl-meta">9:15 AM · Annual renewal via WA link</div></div>
-          <span class="chip green">Paid</span>
-        </div>
-        <div class="tl-row">
-          <div class="tl-icon" style="background:rgba(59,130,246,0.12)">🌅</div>
-          <div class="tl-body"><div class="tl-name">Morning motivation — 1,198 members</div><div class="tl-meta">6:00 AM · Broadcast complete · 97% delivered</div></div>
-          <span class="chip blue">Batch</span>
+          <div class="tl-icon" style="background:rgba(59,130,246,0.12)">📡</div>
+          <div class="tl-body"><div class="tl-name" id="ov-feed-line1">Set API base, admin key or JWT, then open Overview.</div><div class="tl-meta" id="ov-feed-line2">Same routes as before — now require <code style="font-size:10px">Authorization: Bearer</code> (key or JWT).</div></div>
+          <span class="chip blue">API</span>
         </div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">📊 WhatsApp Delivery Stats</div>
-      <div style="margin-bottom:20px">
-        <div class="prog"><span class="prog-label">Delivered</span><div class="prog-track"><div class="prog-fill" style="width:97%;background:var(--wa)"></div></div><span class="prog-val" style="color:var(--wa)">97%</span></div>
-        <div class="prog"><span class="prog-label">Read</span><div class="prog-track"><div class="prog-fill" style="width:84%;background:var(--blue)"></div></div><span class="prog-val" style="color:var(--blue)">84%</span></div>
-        <div class="prog"><span class="prog-label">Replied</span><div class="prog-track"><div class="prog-fill" style="width:61%;background:var(--purple)"></div></div><span class="prog-val" style="color:var(--purple)">61%</span></div>
-        <div class="prog"><span class="prog-label">Paid (via link)</span><div class="prog-track"><div class="prog-fill" style="width:78%;background:var(--amber)"></div></div><span class="prog-val" style="color:var(--amber)">78%</span></div>
-        <div class="prog"><span class="prog-label">Renewals</span><div class="prog-track"><div class="prog-fill" style="width:89%;background:#e85d24"></div></div><span class="prog-val" style="color:#e85d24">89%</span></div>
+      <div class="card-title">📊 Message logs (24h)</div>
+      <div style="margin-bottom:20px" id="ov-msg-bars">
+        <div class="tl-row" style="border:none;padding:8px 0"><div class="tl-body" style="color:var(--muted);font-size:12px">Loads from <code style="font-size:10px">/api/analytics/messages</code> when API base is set.</div></div>
       </div>
       <div style="padding:14px;background:var(--surface);border-radius:10px;border:0.5px solid var(--border)">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Today's Messages</div>
-        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--wa)">1,847</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">0 failures · 3 blocked by user</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Rows (24h)</div>
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--wa)" id="ov-msg-count">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px" id="ov-msg-sub">message_logs table</div>
       </div>
     </div>
   </div>
@@ -379,23 +343,33 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 <!-- ═══ MEMBERS ═══ -->
 <div class="page" id="page-members">
   <div class="kpi-grid">
-    <div class="kpi green"><div class="kpi-label">Total Active</div><div class="kpi-val green">1,198</div><div class="kpi-trend"><span class="trend-up">93.3%</span>&nbsp;retention rate</div></div>
-    <div class="kpi blue"><div class="kpi-label">New This Week</div><div class="kpi-val blue">14</div><div class="kpi-trend">All auto-onboarded</div></div>
-    <div class="kpi amber"><div class="kpi-label">Avg Attendance</div><div class="kpi-val amber">4.2×</div><div class="kpi-trend">Per week per member</div></div>
-    <div class="kpi red"><div class="kpi-label">Churned (30d)</div><div class="kpi-val red">8</div><div class="kpi-trend"><span class="trend-dn">Win-back</span>&nbsp;campaign active</div></div>
+    <div class="kpi green"><div class="kpi-label">Active</div><div class="kpi-val green" id="mem-kpi-active">—</div><div class="kpi-trend">from API overview</div></div>
+    <div class="kpi blue"><div class="kpi-label">New (month)</div><div class="kpi-val blue" id="mem-kpi-new">—</div><div class="kpi-trend">by join date</div></div>
+    <div class="kpi amber"><div class="kpi-label">Due (week)</div><div class="kpi-val amber" id="mem-kpi-due">—</div><div class="kpi-trend">expiring soon</div></div>
+    <div class="kpi red"><div class="kpi-label">Expired</div><div class="kpi-val red" id="mem-kpi-exp">—</div><div class="kpi-trend">in loaded list</div></div>
   </div>
   <div class="search-bar">
     <span class="search-icon">🔍</span>
-    <input type="text" placeholder="Search members by name, phone, or plan...">
+    <input type="text" id="mem-search" placeholder="Search by name, phone, plan...">
     <div style="display:flex;gap:6px">
-      <select style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
-        <option>All Status</option><option>Active</option><option>Expired</option><option>Due</option>
+      <select id="mem-filter-status" style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
+        <option value="">All status</option>
+        <option value="pending">Pending</option>
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="expired">Expired</option>
+        <option value="cancelled">Cancelled</option>
       </select>
-      <select style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
-        <option>All Plans</option><option>Monthly</option><option>3 Month</option><option>Annual</option>
+      <select id="mem-filter-plan" style="background:var(--card2);border:0.5px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer">
+        <option value="">All plans</option>
+        <option value="monthly">Monthly</option>
+        <option value="3month">3 month</option>
+        <option value="6month">6 month</option>
+        <option value="annual">Annual</option>
       </select>
     </div>
   </div>
+  <p id="mem-table-status" style="font-size:12px;color:var(--muted);margin-bottom:8px"></p>
   <div class="table-wrap">
     <table>
       <thead><tr>
@@ -403,54 +377,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
         <th>Joined</th><th>Expires</th><th>WA</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody id="members-tbody">
-        <tr>
-          <td><div class="member-name">Rahul Sharma</div><div class="member-phone">+91 98765 43210</div></td>
-          <td>Premium 3M</td><td>7:00 AM</td><td>Rajesh K.</td>
-          <td>Apr 15</td><td>Jul 15</td>
-          <td><span class="chip green">✓ Linked</span></td>
-          <td><span><span class="status-dot" style="background:#3b82f6"></span><span class="chip blue">New</span></span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">💳</button><button class="act-btn">✏️</button></td>
-        </tr>
-        <tr>
-          <td><div class="member-name">Priya Mehta</div><div class="member-phone">+91 87654 32109</div></td>
-          <td>Monthly</td><td>6:00 AM</td><td>Sunita S.</td>
-          <td>Mar 20</td><td>Apr 20</td>
-          <td><span class="chip green">✓ Linked</span></td>
-          <td><span class="status-dot" style="background:var(--amber)"></span><span class="chip amber">Due</span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn" style="color:var(--amber);border-color:var(--amber)">💳 Remind</button></td>
-        </tr>
-        <tr>
-          <td><div class="member-name">Amit Verma</div><div class="member-phone">+91 76543 21098</div></td>
-          <td>Annual</td><td>7:00 AM</td><td>Rajesh K.</td>
-          <td>Mar 15</td><td>Mar 2026</td>
-          <td><span class="chip green">✓ Linked</span></td>
-          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
-        </tr>
-        <tr>
-          <td><div class="member-name">Deepika Singh</div><div class="member-phone">+91 65432 10987</div></td>
-          <td>6-Month</td><td>8:00 AM</td><td>Vikram S.</td>
-          <td>Jan 10</td><td>Jul 10</td>
-          <td><span class="chip green">✓ Linked</span></td>
-          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
-        </tr>
-        <tr>
-          <td><div class="member-name">Karan Joshi</div><div class="member-phone">+91 54321 09876</div></td>
-          <td>Monthly</td><td>7:00 AM</td><td>Sunita S.</td>
-          <td>Feb 1</td><td>Apr 1</td>
-          <td><span class="chip amber">Inactive</span></td>
-          <td><span class="status-dot" style="background:var(--red)"></span><span class="chip red">Expired</span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn" style="color:var(--wa);border-color:var(--wa)">🔄 Win-back</button></td>
-        </tr>
-        <tr>
-          <td><div class="member-name">Sneha Patel</div><div class="member-phone">+91 43210 98765</div></td>
-          <td>3-Month</td><td>6:00 AM</td><td>Rajesh K.</td>
-          <td>Feb 15</td><td>May 15</td>
-          <td><span class="chip green">✓ Linked</span></td>
-          <td><span class="status-dot" style="background:var(--wa)"></span><span class="chip green">Active</span></td>
-          <td style="display:flex;gap:4px"><button class="act-btn">💬</button><button class="act-btn">✏️</button></td>
-        </tr>
+        <tr><td colspan="9" style="color:var(--muted);padding:20px">Set API base in Settings, then open this tab to load members.</td></tr>
       </tbody>
     </table>
   </div>
@@ -729,38 +656,42 @@ tr:hover td{background:rgba(255,255,255,0.02)}
     <div class="modal-title">+ Add New Member</div>
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="form-row">
-      <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" placeholder="Rahul Sharma" type="text"></div>
-      <div class="form-field"><label class="form-label">WhatsApp Number</label><input class="form-input" placeholder="9876543210" type="tel"></div>
+      <div class="form-field"><label class="form-label">Full Name</label><input class="form-input" id="add-name" placeholder="Rahul Sharma" type="text" autocomplete="name"></div>
+      <div class="form-field"><label class="form-label">WhatsApp (10 digit)</label><input class="form-input" id="add-phone" placeholder="9876543210" type="tel" inputmode="numeric" autocomplete="tel"></div>
     </div>
     <div class="form-row">
-      <div class="form-field"><label class="form-label">Email (optional)</label><input class="form-input" placeholder="rahul@gmail.com" type="email"></div>
-      <div class="form-field"><label class="form-label">Date of Birth</label><input class="form-input" type="date"></div>
+      <div class="form-field"><label class="form-label">Email (optional)</label><input class="form-input" id="add-email" placeholder="rahul@gmail.com" type="email" autocomplete="email"></div>
+      <div class="form-field"><label class="form-label">Date of Birth</label><input class="form-input" id="add-dob" type="date"></div>
     </div>
     <div class="form-row">
       <div class="form-field"><label class="form-label">Membership Plan</label>
-        <select class="form-input form-select">
-          <option>Monthly — ₹1,999</option>
-          <option>3-Month — ₹4,999</option>
-          <option>6-Month — ₹7,999</option>
-          <option>Annual — ₹14,999</option>
+        <select class="form-input form-select" id="add-plan">
+          <option value="monthly">Monthly</option>
+          <option value="3month">3-Month</option>
+          <option value="6month">6-Month</option>
+          <option value="annual">Annual</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-label">Batch Timing</label>
-        <select class="form-input form-select">
+      <div class="form-field"><label class="form-label">Batch timing</label>
+        <select class="form-input form-select" id="add-batch">
           <option>6:00 AM</option><option>7:00 AM</option><option>8:00 AM</option>
           <option>5:00 PM</option><option>6:00 PM</option><option>7:00 PM</option>
         </select>
       </div>
     </div>
-    <div class="form-field"><label class="form-label">Fitness Goal</label>
-      <select class="form-input form-select">
-        <option>Weight Loss</option><option>Build Muscle</option><option>General Fitness</option><option>Endurance</option>
+    <div class="form-field"><label class="form-label">Fitness goal</label>
+      <select class="form-input form-select" id="add-goal">
+        <option value="weightloss">Weight loss</option>
+        <option value="muscle">Build muscle</option>
+        <option value="general">General fitness</option>
+        <option value="endurance">Endurance</option>
       </select>
     </div>
     <div style="font-size:12px;color:var(--muted);padding:10px;background:rgba(37,211,102,0.05);border:0.5px solid rgba(37,211,102,0.15);border-radius:8px;margin-bottom:14px">
-      🤖 On save: WhatsApp welcome message + intake form auto-sent. Trainer auto-assigned. CRM updated instantly.
+      Uses <code style="font-size:10px">POST /api/members</code> (10-digit phone, <code style="font-size:10px">tenantId</code> from Settings). On success, onboarding is triggered on the server.
     </div>
-    <button class="btn-primary">✅ Add Member & Start Automation</button>
+    <p id="add-member-status" style="font-size:12px;margin-bottom:8px;color:var(--muted)"></p>
+    <button class="btn-primary" type="button" id="btn-add-member">✅ Add member</button>
   </div>
 </div>
 
@@ -774,6 +705,8 @@ function show(page) {
   );
   if (match) match.classList.add('active');
   if (page === 'settings') loadAdminConfigUI();
+  if (page === 'overview') loadOverview();
+  if (page === 'members') loadMembersPage();
 }
 function openModal() {
   document.getElementById('addModal').classList.add('open');
@@ -810,6 +743,10 @@ function getSelectedTenantId() {
   return v || DEFAULT_T;
 }
 
+function hasAdminAuth() {
+  return !!(getJwt() || getAdminKey());
+}
+
 function adminAuthHeader() {
   const jwt = getJwt();
   if (jwt) return 'Bearer ' + jwt;
@@ -828,6 +765,325 @@ async function adminFetch(path, opts) {
   );
   return fetch(base + path, Object.assign({}, opts, { headers }));
 }
+
+let membersCache = [];
+
+function fmtNum(n) {
+  if (n == null || Number.isNaN(n)) return '—';
+  return Number(n).toLocaleString('en-IN');
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function shortDate(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  } catch {
+    return '—';
+  }
+}
+
+function memberStatusRow(m) {
+  const st = (m.status || '').toLowerCase();
+  let dot = 'var(--muted)';
+  let chip = 'chip';
+  let label = st || '—';
+  if (st === 'active') {
+    dot = 'var(--wa)';
+    chip = 'chip green';
+    label = 'Active';
+  } else if (st === 'pending') {
+    dot = '#3b82f6';
+    chip = 'chip blue';
+    label = 'Pending';
+  } else if (st === 'expired') {
+    dot = 'var(--red)';
+    chip = 'chip red';
+    label = 'Expired';
+  } else if (st === 'paused') {
+    dot = 'var(--amber)';
+    chip = 'chip amber';
+    label = 'Paused';
+  } else if (st === 'cancelled') {
+    dot = 'var(--muted)';
+    chip = 'chip';
+    label = 'Cancelled';
+  }
+  return '<span><span class="status-dot" style="background:' + dot + '"></span><span class="' + chip + '">' + escapeHtml(label) + '</span></span>';
+}
+
+async function loadOverview() {
+  const tid = getSelectedTenantId();
+  const feed1 = document.getElementById('ov-feed-line1');
+  const feed2 = document.getElementById('ov-feed-line2');
+  if (!getApiBase()) {
+    if (feed1) feed1.textContent = 'Set API base URL in Settings to load live analytics.';
+    return;
+  }
+  if (!hasAdminAuth()) {
+    if (feed1) feed1.textContent = 'Add admin API key or click “Get JWT” in Settings — members & analytics require Authorization.';
+    if (feed2) feed2.textContent = 'The dashboard sends Authorization: Bearer (API key or JWT) on each request.';
+    return;
+  }
+  try {
+    const r = await adminFetch('/api/analytics/overview?tenantId=' + encodeURIComponent(tid), { method: 'GET' });
+    const j = await r.json();
+    if (r.status === 401) throw new Error((j && j.error) || 'Unauthorized');
+    if (!j.success) throw new Error(j.error || 'Overview failed');
+    const d = j.data || {};
+    const t = document.getElementById('ov-kpi-total');
+    const a = document.getElementById('ov-kpi-active');
+    const du = document.getElementById('ov-kpi-due');
+    const nw = document.getElementById('ov-kpi-newm');
+    if (t) t.textContent = fmtNum(d.total);
+    if (a) a.textContent = fmtNum(d.active);
+    if (du) du.textContent = fmtNum(d.dueThisWeek);
+    if (nw) nw.textContent = fmtNum(d.newThisMonth);
+    const tr = document.getElementById('ov-kpi-total-trend');
+    if (tr) tr.innerHTML = '<span class="trend-up">' + fmtNum(d.total) + '</span> total in tenant';
+    if (feed1) feed1.textContent = 'Analytics loaded for tenant.';
+    if (feed2) feed2.textContent = 'total=' + fmtNum(d.total) + ' · active=' + fmtNum(d.active) + ' · due (week)=' + fmtNum(d.dueThisWeek);
+
+    const p1 = document.getElementById('ov-p1');
+    const p2 = document.getElementById('ov-p2');
+    const p3 = document.getElementById('ov-p3');
+    const p4 = document.getElementById('ov-p4');
+    const pr = await adminFetch('/api/members?tenantId=' + encodeURIComponent(tid) + '&status=pending&limit=500', { method: 'GET' });
+    const prj = pr.ok ? await pr.json() : {};
+    const pen = (prj.success && prj.data) ? prj.data.length : 0;
+    const exr = await adminFetch('/api/members?tenantId=' + encodeURIComponent(tid) + '&status=expired&limit=500', { method: 'GET' });
+    const exj = exr.ok ? await exr.json() : {};
+    const expc = (exj.success && exj.data) ? exj.data.length : 0;
+    if (p1) p1.textContent = fmtNum(pen);
+    if (p2) p2.textContent = fmtNum(d.active);
+    if (p3) p3.textContent = fmtNum(d.dueThisWeek);
+    if (p4) p4.textContent = fmtNum(expc);
+
+    document.getElementById('mem-kpi-active') && (document.getElementById('mem-kpi-active').textContent = fmtNum(d.active));
+    document.getElementById('mem-kpi-new') && (document.getElementById('mem-kpi-new').textContent = fmtNum(d.newThisMonth));
+    document.getElementById('mem-kpi-due') && (document.getElementById('mem-kpi-due').textContent = fmtNum(d.dueThisWeek));
+  } catch (e) {
+    if (feed1) feed1.textContent = 'Could not load overview: ' + (e.message || e);
+  }
+
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const cntEl = document.getElementById('ov-msg-count');
+  const subEl = document.getElementById('ov-msg-sub');
+  const bars = document.getElementById('ov-msg-bars');
+  try {
+    const r = await adminFetch('/api/analytics/messages?from=' + encodeURIComponent(start.toISOString()), { method: 'GET' });
+    const j = await r.json();
+    if (r.status === 401) throw new Error((j && j.error) || 'Unauthorized');
+    if (!j.success) throw new Error(j.error || 'Messages failed');
+    const rows = j.data || [];
+    if (cntEl) cntEl.textContent = fmtNum(rows.length);
+    if (subEl) subEl.textContent = 'rows in message_logs (since midnight local)';
+    if (bars) {
+      bars.innerHTML = '<div class="tl-row" style="border:none;padding:8px 0"><div class="tl-body" style="color:var(--muted);font-size:12px">Raw count only — per-status breakdown is not in this API yet.</div></div>';
+    }
+  } catch {
+    if (cntEl) cntEl.textContent = '—';
+  }
+}
+
+async function loadMembersPage() {
+  const tid = getSelectedTenantId();
+  const st = document.getElementById('mem-table-status');
+  if (!getApiBase()) {
+    if (st) st.textContent = 'Set API base URL in Settings first.';
+    return;
+  }
+  if (!hasAdminAuth()) {
+    if (st) st.textContent = 'Add admin API key or JWT in Settings — this API is protected.';
+    return;
+  }
+  const tb = document.getElementById('members-tbody');
+  if (tb) tb.innerHTML = '<tr><td colspan="9" style="color:var(--muted);padding:16px">Loading…</td></tr>';
+  try {
+    await loadOverview();
+    const r = await adminFetch('/api/members?tenantId=' + encodeURIComponent(tid) + '&limit=500', { method: 'GET' });
+    const j = await r.json();
+    if (r.status === 401) throw new Error((j && j.error) || 'Unauthorized — set admin key or JWT in Settings');
+    if (!j.success) throw new Error(j.error || 'Members failed');
+    membersCache = j.data || [];
+    const ex = membersCache.filter(m => m.status === 'expired').length;
+    const ek = document.getElementById('mem-kpi-exp');
+    if (ek) ek.textContent = fmtNum(ex);
+    if (st) st.textContent = 'Loaded ' + membersCache.length + ' members (max 500).';
+    applyMemberFilters();
+  } catch (e) {
+    if (st) st.textContent = e.message || String(e);
+    if (tb) tb.innerHTML = '<tr><td colspan="9" style="color:var(--red);padding:16px">' + escapeHtml(e.message || e) + '</td></tr>';
+  }
+}
+
+function applyMemberFilters() {
+  const q = ((document.getElementById('mem-search') && document.getElementById('mem-search').value) || '').trim().toLowerCase();
+  const fs = (document.getElementById('mem-filter-status') && document.getElementById('mem-filter-status').value) || '';
+  const fp = (document.getElementById('mem-filter-plan') && document.getElementById('mem-filter-plan').value) || '';
+  let list = membersCache.slice();
+  if (fs) list = list.filter(m => (m.status || '') === fs);
+  if (fp) list = list.filter(m => (m.plan || '') === fp);
+  if (q) {
+    list = list.filter(m => {
+      const blob = [m.name, m.phone, m.plan, m.planName, m.batchTime, m.fitnessGoal].map(x => String(x || '')).join(' ').toLowerCase();
+      return blob.indexOf(q) >= 0;
+    });
+  }
+  const tb = document.getElementById('members-tbody');
+  if (!tb) return;
+  if (!list.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="color:var(--muted);padding:16px">No rows match.</td></tr>';
+    return;
+  }
+  tb.innerHTML = list.map(m => {
+    const phone = String(m.phone || '');
+    const wa = phone
+      ? '<a class="act-btn" href="https://wa.me/91' + escapeHtml(phone.replace(/\D/g, '').slice(-10)) + '" target="_blank" rel="noopener">💬</a>'
+      : '<span class="chip">—</span>';
+    const planLabel = escapeHtml(m.planName || m.plan || '—');
+    const trainer = escapeHtml(m.trainerName || '—');
+    const remind = (m.status === 'active' || m.status === 'pending')
+      ? '<button type="button" class="act-btn mem-remind" data-mid="' + escapeHtml(m.id) + '">💳 Remind</button>'
+      : '';
+    const edit = '<button type="button" class="act-btn mem-edit" data-mid="' + escapeHtml(m.id) + '">✏️</button>';
+    return '<tr data-mid="' + escapeHtml(m.id) + '">' +
+      '<td><div class="member-name">' + escapeHtml(m.name) + '</div><div class="member-phone">+91 ' + escapeHtml(phone) + '</div></td>' +
+      '<td>' + planLabel + '</td>' +
+      '<td>' + escapeHtml(m.batchTime || '—') + '</td>' +
+      '<td>' + trainer + '</td>' +
+      '<td>' + shortDate(m.joinDate) + '</td>' +
+      '<td>' + shortDate(m.expiryDate) + '</td>' +
+      '<td><span class="chip green">✓</span></td>' +
+      '<td>' + memberStatusRow(m) + '</td>' +
+      '<td style="display:flex;flex-wrap:wrap;gap:4px">' + wa + remind + edit + '</td></tr>';
+  }).join('');
+  tb.querySelectorAll('.mem-remind').forEach(btn => {
+    btn.addEventListener('click', () => sendPaymentRemind(btn.getAttribute('data-mid')));
+  });
+  tb.querySelectorAll('.mem-edit').forEach(btn => {
+    btn.addEventListener('click', () => editMemberStatus(btn.getAttribute('data-mid')));
+  });
+}
+
+async function sendPaymentRemind(memberId) {
+  if (!getApiBase() || !hasAdminAuth()) {
+    alert('Set API base and admin key or JWT in Settings.');
+    return;
+  }
+  try {
+    const r = await adminFetch('/api/trigger/payment-reminder/' + encodeURIComponent(memberId), { method: 'POST' });
+    const j = await r.json();
+    if (r.status === 401) throw new Error((j && j.error) || 'Unauthorized');
+    if (!j.success) throw new Error(j.error || 'Remind failed');
+    alert('Payment reminder sent.');
+  } catch (e) {
+    alert(e.message || e);
+  }
+}
+
+async function editMemberStatus(memberId) {
+  const next = window.prompt('New status: pending, active, paused, expired, cancelled', 'active');
+  if (!next) return;
+  const s = String(next).trim().toLowerCase();
+  if (!['pending', 'active', 'paused', 'expired', 'cancelled'].includes(s)) {
+    alert('Invalid status');
+    return;
+  }
+  if (!getApiBase() || !hasAdminAuth()) {
+    alert('Set API base and admin key or JWT in Settings.');
+    return;
+  }
+  try {
+    const r = await adminFetch('/api/members/' + encodeURIComponent(memberId), {
+      method: 'PATCH',
+      body: JSON.stringify({ status: s }),
+    });
+    const j = await r.json();
+    if (r.status === 401) throw new Error((j && j.error) || 'Unauthorized');
+    if (!j.success) throw new Error(j.error || 'Update failed');
+    await loadMembersPage();
+  } catch (e) {
+    alert(e.message || e);
+  }
+}
+
+const memSearchEl = document.getElementById('mem-search');
+if (memSearchEl) memSearchEl.addEventListener('input', () => { if (membersCache.length) applyMemberFilters(); });
+['mem-filter-status', 'mem-filter-plan'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => { if (membersCache.length) applyMemberFilters(); });
+});
+
+document.getElementById('btn-add-member') && document.getElementById('btn-add-member').addEventListener('click', async () => {
+  const st = document.getElementById('add-member-status');
+  if (st) st.textContent = '';
+  if (!getApiBase()) {
+    if (st) st.textContent = 'Set API base in Settings first.';
+    return;
+  }
+  if (!hasAdminAuth()) {
+    if (st) st.textContent = 'Add admin API key or JWT in Settings — create member requires the same auth.';
+    return;
+  }
+  const name = (document.getElementById('add-name') && document.getElementById('add-name').value || '').trim();
+  let phone = (document.getElementById('add-phone') && document.getElementById('add-phone').value || '').replace(/\D/g, '');
+  if (phone.length === 12 && phone.startsWith('91')) phone = phone.slice(2);
+  const plan = (document.getElementById('add-plan') && document.getElementById('add-plan').value) || 'monthly';
+  const batchTime = (document.getElementById('add-batch') && document.getElementById('add-batch').value) || '7:00 AM';
+  const fitnessGoal = (document.getElementById('add-goal') && document.getElementById('add-goal').value) || 'general';
+  const email = (document.getElementById('add-email') && document.getElementById('add-email').value || '').trim();
+  const dob = (document.getElementById('add-dob') && document.getElementById('add-dob').value) || null;
+  const tenantId = getSelectedTenantId();
+  if (!name || !phone) {
+    if (st) st.textContent = 'Name and 10-digit phone are required.';
+    return;
+  }
+  if (!/^[6-9]\d{9}$/.test(phone)) {
+    if (st) st.textContent = 'Phone must be 10 digits (Indian), e.g. 9876543210';
+    return;
+  }
+  const body = { name, phone, plan, batchTime, fitnessGoal, tenantId };
+  if (email) body.email = email;
+  if (dob) body.dob = dob;
+  try {
+    const r = await adminFetch('/api/members', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (r.status === 401) {
+      throw new Error((j && j.error) || 'Unauthorized — set admin key or JWT');
+    }
+    if (!r.ok) {
+      const msg = (j.errors && j.errors[0] && j.errors[0].msg) || j.error || r.statusText;
+      throw new Error(msg);
+    }
+    if (st) st.textContent = 'Member created. Onboarding triggered.';
+    closeModal();
+    if (document.getElementById('page-members') && document.getElementById('page-members').classList.contains('active')) {
+      await loadMembersPage();
+    } else {
+      show('members');
+    }
+  } catch (e) {
+    if (st) st.textContent = (e.message || e);
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('cfg-api-base');
+  if (b && !b.value) b.value = localStorage.getItem(LS_API) || '';
+  if (getApiBase()) loadOverview();
+});
 
 async function loadTenantList() {
   const sel = document.getElementById('cfg-tenant');
