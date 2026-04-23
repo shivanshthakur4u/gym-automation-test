@@ -13,6 +13,9 @@ const HEADERS = {
   'Content-Type': 'application/json',
 };
 
+// Must match template language in WhatsApp Manager (e.g. en, en_US, hi). Wrong locale → (#132001)
+const TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANGUAGE || 'en';
+
 // ─────────────────────────────────────────
 // CORE SEND FUNCTIONS
 // ─────────────────────────────────────────
@@ -21,7 +24,7 @@ const HEADERS = {
  * Send a pre-approved WhatsApp Template message
  * Templates must be approved by Meta before use
  */
-async function sendTemplate(phone, templateName, components = [], language = 'en') {
+async function sendTemplate(phone, templateName, components = [], language = TEMPLATE_LANG) {
   const payload = {
     messaging_product: 'whatsapp',
     to: formatPhone(phone),
@@ -145,13 +148,14 @@ async function markAsRead(messageId) {
 /**
  * Send new member welcome + intake form
  */
-async function sendWelcomeAndIntakeForm(member) {
+async function sendWelcomeAndIntakeForm(member, { intakeFormUrl } = {}) {
+  const formUrl = intakeFormUrl || process.env.INTAKE_FORM_URL;
   return await sendTemplate(member.phone, 'gym_welcome_intake', [
     {
       type: 'body',
       parameters: [
         { type: 'text', text: member.name },
-        { type: 'text', text: process.env.INTAKE_FORM_URL },
+        { type: 'text', text: formUrl || 'https://example.com' },
       ],
     },
   ]);
@@ -305,11 +309,13 @@ async function sendBirthdayGreeting(member) {
 /**
  * Send main menu (interactive list)
  */
-async function sendMainMenu(phone, memberName) {
+async function sendMainMenu(phone, memberName, { branding } = {}) {
+  const title = branding?.botTitle || process.env.BOT_DISPLAY_NAME || 'GymBot Pro';
+  const footer = branding?.footerText || 'Reply or choose an option below';
   return await sendList(phone, {
-    header: '💪 GymBot Pro',
+    header: `💪 ${title}`,
     body: `Hi ${memberName}! How can I help you today?`,
-    footer: 'Reply or choose an option below',
+    footer,
     buttonText: 'Open Menu',
     sections: [
       {

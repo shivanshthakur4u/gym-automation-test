@@ -1,0 +1,27 @@
+flowchart TB
+  subgraph client
+    D[dashboard.html]
+  end
+  subgraph api[Express]
+    W[/webhook/whatsapp/]
+    F[/webhook/form/]
+    A[/api + admin/]
+    Auth[/api/auth/login JWT/]
+  end
+  subgraph core
+    R[tenantResolver]
+    DB[(database.js)]
+    AU[automation.js]
+    GC[gymConfig per tenantId]
+  end
+  SB[(Supabase: tenants, members, trainers, gym_instance_config, …)]
+  D --> A
+  D --> Auth
+  W --> R
+  R --> DB
+  W --> AU
+  F --> AU
+  A --> DB
+  A --> GC
+  AU --> GC
+  DB --> SB

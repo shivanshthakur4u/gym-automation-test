@@ -104,10 +104,11 @@ pm2 startup
 2. Under **Webhook**, click Edit
 3. Callback URL: `https://yourdomain.com/webhook/whatsapp`
 4. Verify Token: (whatever you set as WHATSAPP_VERIFY_TOKEN in .env)
-5. Click **Verify and Save**
-6. Subscribe to: `messages`
+5. Click **Verify and Save** — Meta will call `GET /webhook/whatsapp` on your server; if it fails, check `SERVER_URL`, HTTPS, and that `WHATSAPP_VERIFY_TOKEN` matches exactly (Render **Variables** + redeploy if you changed it).
+6. Under the same Webhook section, open **Manage** (or field list) and subscribe to **`messages`** (required for incoming chats). Save if there is a separate Save.
+7. **Test:** From a phone number allowed in dev/test settings, send **"hi"** to your WhatsApp Business number → the bot should reply (see `backend` logs for `POST /webhook/whatsapp`).
 
-Test it: Send "hi" to your WhatsApp Business number → should get a reply!
+Next: **STEP 4** — submit **Message Templates** in WhatsApp Manager if you need outbound template messages (welcome, payment link, etc.); those need Meta approval.
 
 ---
 

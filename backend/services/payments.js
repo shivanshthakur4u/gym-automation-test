@@ -6,13 +6,15 @@
 const Razorpay = require('razorpay');
 const db = require('./database');
 const whatsapp = require('./whatsapp');
+const gymConfig = require('./gymConfig');
+const { defaultTenantId } = require('../lib/defaultTenant');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-const PLAN_PRICES = {
+const PLAN_DEFAULTS = {
   monthly:  { amount: 1999,  name: 'Monthly Plan',   days: 30  },
   '3month': { amount: 4999,  name: '3-Month Plan',   days: 90  },
   '6month': { amount: 7999,  name: '6-Month Plan',   days: 180 },
@@ -23,13 +25,15 @@ const PLAN_PRICES = {
  * Create a Razorpay payment link and send via WhatsApp
  */
 async function sendPaymentReminder(member, reminderNum = 1) {
-  const plan = PLAN_PRICES[member.plan] || PLAN_PRICES.monthly;
+  const rc = await gymConfig.getRuntimeConfig(member.tenantId || defaultTenantId());
+  const planTable = { ...PLAN_DEFAULTS, ...rc.planPrices };
+  const plan = planTable[member.plan] || planTable.monthly;
+  const brand = rc.brandName || process.env.GYM_NAME || 'Gym';
 
-  // Create Razorpay payment link
   const paymentLink = await razorpay.paymentLink.create({
     amount: plan.amount * 100, // paise
     currency: 'INR',
-    description: `${process.env.GYM_NAME} — ${plan.name}`,
+    description: `${brand} — ${plan.name}`,
     customer: {
       name: member.name,
       contact: `+91${member.phone}`,
@@ -72,7 +76,9 @@ async function handleSuccessfulPayment({ memberId, amount, paymentId }) {
   const member = await db.getMemberById(memberId);
   if (!member) return;
 
-  const plan = PLAN_PRICES[member.plan] || PLAN_PRICES.monthly;
+  const rc = await gymConfig.getRuntimeConfig(member.tenantId || defaultTenantId());
+  const planTable = { ...PLAN_DEFAULTS, ...rc.planPrices };
+  const plan = planTable[member.plan] || planTable.monthly;
 
   // Calculate new expiry
   const currentExpiry = new Date(member.expiryDate);
@@ -103,14 +109,15 @@ async function handleSuccessfulPayment({ memberId, amount, paymentId }) {
   console.log(`✅ Payment processed: ${member.name} — ₹${amount}`);
 }
 
-/**
- * Daily cron: Check who needs payment reminders
- */
-async function runPaymentReminderCron() {
-  const today = new Date();
+/** Run the payment / expiry flow for a single tenant */
+async function runPaymentRemindersForTenant(tenantId) {
+  const rc = await gymConfig.getRuntimeConfig(tenantId);
+  if (rc.automations && rc.automations.paymentReminders === false) {
+    console.log('⏭️ Payment reminder cron skipped (disabled in config) tenant', tenantId);
+    return;
+  }
 
-  // Members expiring in 7 days — reminder 1
-  const expIn7 = await db.getMembersExpiringInDays(7);
+  const expIn7 = await db.getMembersExpiringInDays(7, tenantId);
   for (const member of expIn7) {
     if (!member.reminder1SentAt) {
       await sendPaymentReminder(member, 1);
@@ -118,8 +125,7 @@ async function runPaymentReminderCron() {
     }
   }
 
-  // Members expiring in 3 days — reminder 2
-  const expIn3 = await db.getMembersExpiringInDays(3);
+  const expIn3 = await db.getMembersExpiringInDays(3, tenantId);
   for (const member of expIn3) {
     if (member.reminder1SentAt && !member.reminder2SentAt) {
       await sendPaymentReminder(member, 2);
@@ -127,8 +133,7 @@ async function runPaymentReminderCron() {
     }
   }
 
-  // Members expiring in 1 day — reminder 3 (urgent)
-  const expIn1 = await db.getMembersExpiringInDays(1);
+  const expIn1 = await db.getMembersExpiringInDays(1, tenantId);
   for (const member of expIn1) {
     if (member.reminder2SentAt && !member.reminder3SentAt) {
       await sendPaymentReminder(member, 3);
@@ -136,8 +141,7 @@ async function runPaymentReminderCron() {
     }
   }
 
-  // Members expired today — freeze + notify
-  const expiredToday = await db.getMembersExpiredToday();
+  const expiredToday = await db.getMembersExpiredToday(tenantId);
   for (const member of expiredToday) {
     await db.updateMember(member.id, { status: 'expired' });
     await whatsapp.sendText(member.phone,
@@ -149,7 +153,22 @@ async function runPaymentReminderCron() {
     await delay(500);
   }
 
-  console.log(`✅ Payment reminder cron: ${expIn7.length + expIn3.length + expIn1.length} reminders sent`);
+  console.log(
+    `✅ Payment reminder cron tenant ${tenantId}: 7d=${expIn7.length} 3d=${expIn3.length} 1d=${expIn1.length} expiredToday=${expiredToday.length}`
+  );
+}
+
+/**
+ * Daily cron: Check who needs payment reminders (all active tenants)
+ */
+async function runPaymentReminderCron() {
+  let list = await db.listActiveTenants();
+  if (!list || !list.length) {
+    list = [{ id: defaultTenantId() }];
+  }
+  for (const t of list) {
+    await runPaymentRemindersForTenant(t.id);
+  }
 }
 
 function delay(ms) {
@@ -160,5 +179,5 @@ module.exports = {
   sendPaymentReminder,
   handleSuccessfulPayment,
   runPaymentReminderCron,
-  PLAN_PRICES,
+  PLAN_PRICES: PLAN_DEFAULTS,
 };

@@ -525,32 +525,35 @@ tr:hover td{background:rgba(255,255,255,0.02)}
     <div class="card-title">⚙️ Automation Control Panel</div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">🌅 Morning Motivation Blast</div><div class="toggle-info-sub">Sends daily 6:00 AM to all active members — personalized by name & batch</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="morningMotivation" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">📋 New Member Auto-Onboarding</div><div class="toggle-info-sub">Auto-sends intake form + welcome kit when new member is added</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="autoOnboard" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">💳 Payment Reminder Sequence (7→3→1 days)</div><div class="toggle-info-sub">Auto-generates Razorpay links + sends via WhatsApp on schedule</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="paymentReminders" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">🥗 Weekly Diet Plan Delivery (Sunday 8 AM)</div><div class="toggle-info-sub">Auto-sends personalized PDF diet plan to all active members</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="weeklyDiet" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">🏆 Milestone & Birthday Messages</div><div class="toggle-info-sub">Auto-sends at 7, 30, 60, 90, 180, 365 day milestones and on birthdays</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="milestonesBirthdays" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">🌆 Evening Miss-You Check (6 PM)</div><div class="toggle-info-sub">Sends a gentle nudge to members who didn't check in today</div></div>
-      <label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="eveningEngagement" checked><span class="tog-sl"></span></label>
     </div>
     <div class="toggle-row">
       <div><div class="toggle-info-name">🔄 Win-Back Campaign (Monday 9 AM)</div><div class="toggle-info-sub">Sends offer code to members expired more than 7 days ago</div></div>
-      <label class="tog"><input type="checkbox"><span class="tog-sl"></span></label>
+      <label class="tog"><input class="automation-toggle" type="checkbox" data-automation-key="winback"><span class="tog-sl"></span></label>
     </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:12px">Toggles are stored server-side. Configure API + admin key in Settings, then use “Save settings” to push automation flags.</p>
+    <button class="btn-primary" type="button" id="btn-save-automations" style="margin-top:10px">Save automation flags</button>
+    <p id="auto-status" style="font-size:12px;margin-top:8px;color:var(--muted)"></p>
   </div>
 </div>
 
@@ -661,24 +664,53 @@ tr:hover td{background:rgba(255,255,255,0.02)}
   <div class="grid2">
     <div class="card">
       <div class="card-title">⚙️ System Configuration</div>
-      <div class="form-field"><label class="form-label">Gym Name</label><input class="form-input" value="FitZone Gym" type="text"></div>
-      <div class="form-field"><label class="form-label">WhatsApp Business Number</label><input class="form-input" value="+91 98765 00000" type="text"></div>
-      <div class="form-field"><label class="form-label">Gym Website</label><input class="form-input" value="https://fitzonegym.in" type="text"></div>
-      <div class="form-field"><label class="form-label">Intake Form URL</label><input class="form-input" value="https://forms.gle/gymintake" type="text"></div>
-      <button class="btn-primary">Save Settings</button>
-    </div>
-    <div class="card">
-      <div class="card-title">📋 Membership Plans</div>
-      <div class="tl">
-        <div class="tl-row"><div class="tl-body"><div class="tl-name">Monthly Plan</div><div class="tl-meta">30 days · ₹1,999</div></div><button class="act-btn">Edit</button></div>
-        <div class="tl-row"><div class="tl-body"><div class="tl-name">3-Month Plan</div><div class="tl-meta">90 days · ₹4,999</div></div><button class="act-btn">Edit</button></div>
-        <div class="tl-row"><div class="tl-body"><div class="tl-name">6-Month Plan</div><div class="tl-meta">180 days · ₹7,999</div></div><button class="act-btn">Edit</button></div>
-        <div class="tl-row"><div class="tl-body"><div class="tl-name">Annual Plan</div><div class="tl-meta">365 days · ₹14,999</div></div><button class="act-btn">Edit</button></div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px" id="config-hint">Set API base and credentials. Choose a <strong>tenant</strong> (gym) for multi-tenant servers. You can use the raw API key or exchange it for a short-lived JWT.</p>
+      <div class="form-field"><label class="form-label">API base URL</label><input class="form-input" id="cfg-api-base" type="url" placeholder="https://your-server.com"></div>
+      <div class="form-field"><label class="form-label">Admin API key</label><input class="form-input" id="cfg-admin-key" type="password" placeholder="Same as ADMIN_API_KEY in .env" autocomplete="off"></div>
+      <div class="form-field"><label class="form-label">Auth token (JWT, optional)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="form-input" id="cfg-jwt" type="text" readonly placeholder="Click “Get JWT” to fill" style="flex:1">
+          <button type="button" class="nav-btn" id="btn-get-jwt" style="white-space:nowrap">Get JWT</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">If set, requests use this instead of the API key.</div>
       </div>
-      <button class="btn-primary" style="margin-top:14px">+ Add New Plan</button>
+      <div class="form-field"><label class="form-label">Tenant (gym)</label>
+        <select class="form-input form-select" id="cfg-tenant"></select>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Must match DEFAULT_TENANT_ID / Meta phone mapping after migration.</div>
+      </div>
+      <div class="form-field"><label class="form-label">Gym / brand name</label><input class="form-input" id="cfg-brand-name" type="text"></div>
+      <div class="form-field"><label class="form-label">Support phone (reception)</label><input class="form-input" id="cfg-support-phone" type="text"></div>
+      <div class="form-field"><label class="form-label">Website</label><input class="form-input" id="cfg-website" type="url"></div>
+      <div class="form-field"><label class="form-label">Intake form URL</label><input class="form-input" id="cfg-intake" type="url"></div>
+      <div class="form-field"><label class="form-label">CDN / file base (diet PDFs)</label><input class="form-input" id="cfg-cdn" type="url" placeholder="Optional"></div>
+      <button class="btn-primary" type="button" id="btn-save-config">Save settings to server</button>
+      <p id="cfg-status" style="font-size:12px;margin-top:10px;color:var(--muted)"></p>
+    </div>
+      <div class="card">
+      <div class="card-title">Trainers (this tenant)</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Load, add, and edit trainers without SQL. Specializations: weightloss, muscle, general, endurance.</p>
+      <div id="trainers-list" class="tl" style="margin-bottom:12px"></div>
+      <div class="form-row">
+        <div class="form-field"><label class="form-label">Name</label><input class="form-input" id="tr-name" type="text" placeholder="Trainer name"></div>
+        <div class="form-field"><label class="form-label">Phone (10 digit)</label><input class="form-input" id="tr-phone" type="text" placeholder="9876543210"></div>
+      </div>
+      <div class="form-field"><label class="form-label">Specializations (comma)</label><input class="form-input" id="tr-specs" type="text" placeholder="weightloss, general" value="general"></div>
+      <button class="nav-btn" type="button" id="btn-trainers-reload" style="width:100%;margin-bottom:8px">↻ Reload trainers</button>
+      <button class="btn-primary" type="button" id="btn-trainer-add">+ Add trainer</button>
     </div>
   </div>
-  <div class="card">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">📋 Membership Plans</div>
+      <p style="font-size:11px;color:var(--muted)">Plan amounts are editable via the admin API (planPrices) or .env for defaults.</p>
+      <div class="tl" style="margin-top:8px">
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">Monthly Plan</div><div class="tl-meta">30 days</div></div></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">3-Month Plan</div><div class="tl-meta">90 days</div></div></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">6-Month Plan</div><div class="tl-meta">180 days</div></div></div>
+        <div class="tl-row"><div class="tl-body"><div class="tl-name">Annual Plan</div><div class="tl-meta">365 days</div></div></div>
+      </div>
+    </div>
+    <div class="card">
     <div class="card-title">🔗 Integration Status</div>
     <div class="tl">
       <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">WhatsApp Business API — Connected</div><div class="tl-meta">Phone ID: 1234567890 · Webhook active · 97% delivery</div></div><span class="chip green">Live</span></div>
@@ -686,6 +718,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">Supabase Database — Connected</div><div class="tl-meta">Mumbai region · 1,284 records · 99.9% uptime</div></div><span class="chip green">Live</span></div>
       <div class="tl-row"><div class="tl-icon" style="background:rgba(37,211,102,0.12)">✅</div><div class="tl-body"><div class="tl-name">Google Forms — Connected</div><div class="tl-meta">Form webhook active · 847 submissions processed</div></div><span class="chip green">Live</span></div>
       <div class="tl-row"><div class="tl-icon" style="background:var(--amber-l)">⚠️</div><div class="tl-body"><div class="tl-name">WATI (optional WA provider) — Not configured</div><div class="tl-meta">Alternative to direct Meta API · easier setup</div></div><span class="chip amber">Optional</span></div>
+    </div>
     </div>
   </div>
 </div>
@@ -736,7 +769,11 @@ function show(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  event.target.classList.add('active');
+  const match = Array.from(document.querySelectorAll('.nav-tab')).find(b =>
+    (b.getAttribute('onclick') || '').indexOf("'" + page + "'") >= 0
+  );
+  if (match) match.classList.add('active');
+  if (page === 'settings') loadAdminConfigUI();
 }
 function openModal() {
   document.getElementById('addModal').classList.add('open');
@@ -748,6 +785,268 @@ document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+const LS_API = 'gymbotApiBase';
+const LS_KEY = 'gymbotAdminKey';
+const LS_JWT = 'gymbotJwt';
+const LS_TENANT = 'gymbotTenantId';
+const DEFAULT_T = '00000000-0000-0000-0000-000000000001';
+
+function getApiBase() {
+  const el = document.getElementById('cfg-api-base');
+  return (el && el.value) ? el.value.replace(/\/$/, '') : (localStorage.getItem(LS_API) || '').replace(/\/$/, '');
+}
+function getAdminKey() {
+  const el = document.getElementById('cfg-admin-key');
+  return (el && el.value) ? el.value : (localStorage.getItem(LS_KEY) || '');
+}
+function getJwt() {
+  const el = document.getElementById('cfg-jwt');
+  return (el && el.value) ? el.value.trim() : (localStorage.getItem(LS_JWT) || '');
+}
+function getSelectedTenantId() {
+  const s = document.getElementById('cfg-tenant');
+  const v = s && s.value ? s.value : (localStorage.getItem(LS_TENANT) || DEFAULT_T);
+  return v || DEFAULT_T;
+}
+
+function adminAuthHeader() {
+  const jwt = getJwt();
+  if (jwt) return 'Bearer ' + jwt;
+  const key = getAdminKey();
+  if (key) return 'Bearer ' + key;
+  throw new Error('Set admin API key or obtain a JWT first.');
+}
+
+async function adminFetch(path, opts) {
+  const base = getApiBase();
+  if (!base) throw new Error('Set API base URL first.');
+  const auth = adminAuthHeader();
+  const headers = Object.assign(
+    { Authorization: auth, 'Content-Type': 'application/json' },
+    (opts && opts.headers) || {}
+  );
+  return fetch(base + path, Object.assign({}, opts, { headers }));
+}
+
+async function loadTenantList() {
+  const sel = document.getElementById('cfg-tenant');
+  if (!sel) return;
+  try {
+    const r = await adminFetch('/api/admin/tenants', { method: 'GET' });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    const list = j.data || [];
+    const saved = localStorage.getItem(LS_TENANT) || DEFAULT_T;
+    sel.innerHTML = '';
+    list.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.id;
+      o.textContent = (t.name || t.slug) + ' — ' + t.id;
+      if (t.id === saved) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (sel.options.length && ![...sel.options].some(o => o.value === saved)) {
+      sel.selectedIndex = 0;
+    }
+  } catch {
+    sel.innerHTML = '<option value="' + DEFAULT_T + '">Default (single tenant)</option>';
+  }
+}
+
+async function loadTrainers() {
+  const el = document.getElementById('trainers-list');
+  if (!el) return;
+  const tid = getSelectedTenantId();
+  el.innerHTML = '<div class="tl-row"><div class="tl-body" style="color:var(--muted)">Loading…</div></div>';
+  try {
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/trainers', { method: 'GET' });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    const rows = j.data || [];
+    if (!rows.length) {
+      el.innerHTML = '<div class="tl-row"><div class="tl-body" style="color:var(--muted)">No trainers yet. Add one below.</div></div>';
+      return;
+    }
+    el.innerHTML = rows.map(tr => (
+      '<div class="tl-row" data-id="' + tr.id + '"><div class="tl-body"><div class="tl-name">' + (tr.name || '') + '</div>' +
+      '<div class="tl-meta">' + (tr.phone || '') + ' · ' + (tr.specializations || []).join(', ') + (tr.isActive ? '' : ' · inactive') + '</div></div>' +
+      '<button type="button" class="act-btn trainer-deact" data-trainer-id="' + tr.id + '">Deactivate</button></div>'
+    )).join('');
+    el.querySelectorAll('.trainer-deact').forEach(btn => {
+      btn.addEventListener('click', () => deactivateTrainer(btn.getAttribute('data-trainer-id')));
+    });
+  } catch (e) {
+    el.innerHTML = '<div class="tl-row"><div class="tl-body" style="color:var(--red)">' + (e.message || e) + '</div></div>';
+  }
+}
+
+async function deactivateTrainer(id) {
+  const tid = getSelectedTenantId();
+  if (!confirm('Deactivate this trainer?')) return;
+  try {
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/trainers/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive: false }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    await loadTrainers();
+  } catch (e) {
+    alert(e.message || e);
+  }
+};
+
+async function loadAdminConfigUI() {
+  const baseEl = document.getElementById('cfg-api-base');
+  const keyEl = document.getElementById('cfg-admin-key');
+  const jwtEl = document.getElementById('cfg-jwt');
+  if (baseEl && !baseEl.value) baseEl.value = localStorage.getItem(LS_API) || '';
+  if (keyEl && !keyEl.value) keyEl.value = localStorage.getItem(LS_KEY) || '';
+  if (jwtEl && !jwtEl.value) jwtEl.value = localStorage.getItem(LS_JWT) || '';
+  const st = document.getElementById('cfg-status');
+  const base = getApiBase();
+  if (!base) {
+    if (st) st.textContent = 'Enter API base URL.';
+    return;
+  }
+  if (!getJwt() && !getAdminKey()) {
+    if (st) st.textContent = 'Enter admin API key or get a JWT.';
+    return;
+  }
+  try {
+    await loadTenantList();
+    const tid = getSelectedTenantId();
+    localStorage.setItem(LS_TENANT, tid);
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/config', { method: 'GET' });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    const d = j.data || {};
+    document.getElementById('cfg-brand-name').value = d.brandName || '';
+    document.getElementById('cfg-support-phone').value = d.supportPhone || '';
+    document.getElementById('cfg-website').value = d.websiteUrl || '';
+    document.getElementById('cfg-intake').value = d.intakeFormUrl || '';
+    document.getElementById('cfg-cdn').value = d.cdnBaseUrl || '';
+    const aut = d.automations || {};
+    document.querySelectorAll('.automation-toggle').forEach(inp => {
+      const k = inp.getAttribute('data-automation-key');
+      if (k in aut) inp.checked = !!aut[k];
+    });
+    if (st) st.textContent = 'Loaded config for selected tenant.';
+    await loadTrainers();
+  } catch (e) {
+    if (st) st.textContent = 'Could not load: ' + e.message;
+  }
+}
+
+function collectAutomationsFromUI() {
+  const o = {};
+  document.querySelectorAll('.automation-toggle').forEach(inp => {
+    const k = inp.getAttribute('data-automation-key');
+    if (k) o[k] = !!inp.checked;
+  });
+  return o;
+}
+
+document.getElementById('cfg-tenant') && document.getElementById('cfg-tenant').addEventListener('change', () => {
+  localStorage.setItem(LS_TENANT, getSelectedTenantId());
+  loadAdminConfigUI();
+});
+
+document.getElementById('btn-get-jwt') && document.getElementById('btn-get-jwt').addEventListener('click', async () => {
+  const base = getApiBase();
+  const key = getAdminKey();
+  if (!base || !key) {
+    alert('Set API base and admin key first');
+    return;
+  }
+  try {
+    const r = await fetch(base + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: key }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    const token = (j.data && j.data.token) || '';
+    const inp = document.getElementById('cfg-jwt');
+    if (inp) inp.value = token;
+    localStorage.setItem(LS_JWT, token);
+  } catch (e) {
+    alert('Login failed: ' + e.message);
+  }
+});
+
+document.getElementById('btn-trainers-reload') && document.getElementById('btn-trainers-reload').addEventListener('click', () => loadTrainers());
+
+document.getElementById('btn-trainer-add') && document.getElementById('btn-trainer-add').addEventListener('click', async () => {
+  const tid = getSelectedTenantId();
+  const name = (document.getElementById('tr-name') && document.getElementById('tr-name').value) || '';
+  const phone = (document.getElementById('tr-phone') && document.getElementById('tr-phone').value) || '';
+  const specStr = (document.getElementById('tr-specs') && document.getElementById('tr-specs').value) || 'general';
+  const specializations = specStr.split(/[,\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+  if (!name || !phone) {
+    alert('Name and phone required');
+    return;
+  }
+  try {
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/trainers', {
+      method: 'POST',
+      body: JSON.stringify({ name, phone, specializations }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    await loadTrainers();
+  } catch (e) {
+    alert(e.message);
+  }
+});
+
+document.getElementById('btn-save-config').addEventListener('click', async () => {
+  const baseEl = document.getElementById('cfg-api-base');
+  const keyEl = document.getElementById('cfg-admin-key');
+  const jwtE = document.getElementById('cfg-jwt');
+  if (baseEl && baseEl.value) localStorage.setItem(LS_API, baseEl.value.trim());
+  if (keyEl && keyEl.value) localStorage.setItem(LS_KEY, keyEl.value);
+  if (jwtE && jwtE.value) localStorage.setItem(LS_JWT, jwtE.value);
+  if (document.getElementById('cfg-tenant')) {
+    localStorage.setItem(LS_TENANT, getSelectedTenantId());
+  }
+  const st = document.getElementById('cfg-status');
+  try {
+    const tid = getSelectedTenantId();
+    const body = {
+      brandName: document.getElementById('cfg-brand-name').value.trim(),
+      supportPhone: document.getElementById('cfg-support-phone').value.trim(),
+      websiteUrl: document.getElementById('cfg-website').value.trim(),
+      intakeFormUrl: document.getElementById('cfg-intake').value.trim(),
+      cdnBaseUrl: document.getElementById('cfg-cdn').value.trim(),
+      automations: collectAutomationsFromUI(),
+    };
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/config', { method: 'PUT', body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    if (st) st.textContent = 'Saved for tenant ' + tid + '.';
+  } catch (e) {
+    if (st) st.textContent = 'Save failed: ' + e.message;
+  }
+});
+
+document.getElementById('btn-save-automations').addEventListener('click', async () => {
+  const st = document.getElementById('auto-status');
+  try {
+    const tid = getSelectedTenantId();
+    const r = await adminFetch('/api/admin/tenants/' + tid + '/config', {
+      method: 'PUT',
+      body: JSON.stringify({ automations: collectAutomationsFromUI() }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    if (st) st.textContent = 'Automation flags saved for tenant.';
+  } catch (e) {
+    if (st) st.textContent = 'Save failed: ' + e.message;
+  }
+});
 </script>
 </body>
 </html>

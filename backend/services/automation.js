@@ -10,6 +10,8 @@
 const whatsapp = require('./whatsapp');
 const db = require('./database');
 const payments = require('./payments');
+const gymConfig = require('./gymConfig');
+const { defaultTenantId } = require('../lib/defaultTenant');
 
 // ─────────────────────────────────────────
 // CONVERSATION STATE MACHINE
@@ -27,28 +29,26 @@ const STATES = {
 
 /**
  * Main entry point for all incoming WhatsApp messages
+ * @param {string} [tenantId] - Meta WABA / tenant (required for correct member + config scope)
  */
-async function handleIncomingMessage({ phone, text, msgType, msg, member }) {
-  // Mark as read
+async function handleIncomingMessage({ phone, text, msgType, msg, member, tenantId }) {
+  const tid = tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
   if (msg.id) await whatsapp.markAsRead(msg.id);
 
-  // New number — not a member
   if (!member) {
-    return await handleUnknownContact(phone, text);
+    return await handleUnknownContact(phone, text, rc);
   }
 
-  // Handle interactive replies (button/list)
   if (msgType === 'interactive') {
     const reply = msg.interactive?.button_reply || msg.interactive?.list_reply;
     if (reply) {
-      return await handleInteractiveReply({ phone, member, replyId: reply.id, replyTitle: reply.title });
+      return await handleInteractiveReply({ phone, member, replyId: reply.id, replyTitle: reply.title, rc, tid });
     }
   }
 
-  // Get conversation state
-  const state = await db.getConversationState(phone);
+  const state = await db.getConversationState(phone, tid);
 
-  // Route based on state first, then keywords
   if (state === STATES.AWAITING_BATCH_CHOICE) {
     return await handleBatchChange(member, text);
   }
@@ -62,18 +62,17 @@ async function handleIncomingMessage({ phone, text, msgType, msg, member }) {
     return await handleTrainerQuery(member, text);
   }
 
-  // Keyword routing
-  return await routeByKeyword(phone, text, member);
+  return await routeByKeyword(phone, text, member, rc, tid);
 }
 
 /**
  * Route messages by keyword
  */
-async function routeByKeyword(phone, text, member) {
+async function routeByKeyword(phone, text, member, rc, tid) {
   const t = text.toLowerCase();
 
   if (matchAny(t, ['hi', 'hello', 'hey', 'menu', 'help', 'start'])) {
-    return await whatsapp.sendMainMenu(phone, member.name);
+    return await whatsapp.sendMainMenu(phone, member.name, { branding: pickBranding(rc) });
   }
   if (matchAny(t, ['status', 'membership', 'expiry', 'expire', 'valid'])) {
     return await sendMemberStatus(member);
@@ -88,14 +87,14 @@ async function routeByKeyword(phone, text, member) {
     return await sendDietInfo(member);
   }
   if (matchAny(t, ['trainer', 'coach', 'staff'])) {
-    await db.setConversationState(phone, STATES.AWAITING_TRAINER_QUERY);
+    await db.setConversationState(phone, STATES.AWAITING_TRAINER_QUERY, tid);
     return await whatsapp.sendText(phone, '💬 Sure! Type your message for your trainer and I\'ll forward it right away.');
   }
   if (matchAny(t, ['timing', 'schedule', 'batch', 'time'])) {
     return await sendGymTimings(member);
   }
   if (matchAny(t, ['pause', 'freeze', 'hold', 'leave'])) {
-    await db.setConversationState(phone, STATES.AWAITING_PAUSE_CONFIRM);
+    await db.setConversationState(phone, STATES.AWAITING_PAUSE_CONFIRM, tid);
     return await whatsapp.sendButtons(phone, {
       body: `⏸️ Want to pause your membership?\n\nWe'll freeze your remaining days and resume when you're back. How many days do you need off?`,
       buttons: [
@@ -111,14 +110,21 @@ async function routeByKeyword(phone, text, member) {
     return await whatsapp.sendText(phone, `💪 Anytime, ${member.name.split(' ')[0]}! Keep crushing it. See you at the gym! 🔥`);
   }
 
-  // Default — show menu
-  return await whatsapp.sendMainMenu(phone, member.name);
+  return await whatsapp.sendMainMenu(phone, member.name, { branding: pickBranding(rc) });
+}
+
+function pickBranding(rc) {
+  return {
+    botTitle: rc.brandName || 'Assistant',
+    footerText: 'Choose an option below',
+  };
 }
 
 /**
  * Handle interactive button/list replies
  */
-async function handleInteractiveReply({ phone, member, replyId, replyTitle }) {
+async function handleInteractiveReply({ phone, member, replyId, replyTitle, rc, tid }) {
+  const t = tid || member.tenantId || defaultTenantId();
   switch (replyId) {
     case 'check_status':
       return await sendMemberStatus(member);
@@ -127,7 +133,7 @@ async function handleInteractiveReply({ phone, member, replyId, replyTitle }) {
       return await payments.sendPaymentReminder(member);
 
     case 'change_batch':
-      await db.setConversationState(phone, STATES.AWAITING_BATCH_CHOICE);
+      await db.setConversationState(phone, STATES.AWAITING_BATCH_CHOICE, t);
       return await whatsapp.sendButtons(phone, {
         header: '⏰ Choose Your Batch',
         body: 'Select the timing that works best for you:',
@@ -152,14 +158,14 @@ async function handleInteractiveReply({ phone, member, replyId, replyTitle }) {
       return await sendProgressInfo(member);
 
     case 'talk_trainer':
-      await db.setConversationState(phone, STATES.AWAITING_TRAINER_QUERY);
+      await db.setConversationState(phone, STATES.AWAITING_TRAINER_QUERY, t);
       return await whatsapp.sendText(phone, '💬 Type your question for your trainer and I\'ll pass it on!');
 
     case 'gym_timings':
       return await sendGymTimings(member);
 
     case 'pause_membership':
-      await db.setConversationState(phone, STATES.AWAITING_PAUSE_CONFIRM);
+      await db.setConversationState(phone, STATES.AWAITING_PAUSE_CONFIRM, t);
       return await whatsapp.sendButtons(phone, {
         body: '⏸️ Want to pause your membership? We\'ll freeze your remaining days.',
         buttons: [
@@ -169,15 +175,15 @@ async function handleInteractiveReply({ phone, member, replyId, replyTitle }) {
       });
 
     case 'pause_yes':
-      await db.setConversationState(phone, STATES.AWAITING_PAUSE_DAYS);
+      await db.setConversationState(phone, STATES.AWAITING_PAUSE_DAYS, t);
       return await whatsapp.sendText(phone, '📅 How many days do you need to pause? (1–30 days)\n\nJust type the number, e.g. *7*');
 
     case 'pause_no':
-      await db.setConversationState(phone, STATES.IDLE);
+      await db.setConversationState(phone, STATES.IDLE, t);
       return await whatsapp.sendText(phone, '✅ No problem! Your membership continues as normal. 💪');
 
     default:
-      return await whatsapp.sendMainMenu(phone, member.name);
+      return await whatsapp.sendMainMenu(phone, member.name, { branding: pickBranding(rc) });
   }
 }
 
@@ -255,26 +261,30 @@ async function sendGymTimings(member) {
 }
 
 async function sendProgressInfo(member) {
+  const base = (await gymConfig.getRuntimeConfig(member.tenantId || defaultTenantId())).websiteUrl || process.env.GYM_WEBSITE || '';
+  const progressUrl = base ? `${base.replace(/\/$/, '')}/progress/${member.id}` : '';
   return await whatsapp.sendText(member.phone,
     `📊 *Your Progress — ${member.name.split(' ')[0]}*\n\n` +
     `📅 Member since: ${formatDate(member.joinDate)}\n` +
     `🔢 Days completed: *${getDaysCompleted(member.joinDate)}*\n` +
-    `✅ Sessions attended: ${member.sessionsAttended || '—'}\n` +
+    `✅ Sessions attended: ${member.sessionsAttended != null ? member.sessionsAttended : '—'}\n` +
     `🎯 Goal: ${capitalise(member.fitnessGoal || 'General Fitness')}\n\n` +
-    `📈 For detailed progress tracking including weight, measurements & photos, visit your profile at:\n` +
-    `${process.env.GYM_WEBSITE}/progress/${member.id}\n\n` +
+    (progressUrl
+      ? `📈 For detailed progress tracking including weight, measurements & photos, visit your profile at:\n${progressUrl}\n\n`
+      : `📈 Ask reception for your full progress log.\n\n`) +
     `💪 Keep going ${member.name.split(' ')[0]}! Consistency is key!`
   );
 }
 
 async function handleTrainerQuery(member, text) {
-  const trainer = await db.getTrainer(member.trainerId);
+  const tid = member.tenantId || defaultTenantId();
+  const trainer = await db.getTrainer(member.trainerId, tid);
   if (trainer) {
     await whatsapp.sendText(trainer.phone,
       `📩 *Message from member: ${member.name}*\n\n"${text}"\n\nReply to this to connect with them.`
     );
   }
-  await db.setConversationState(member.phone, STATES.IDLE);
+  await db.setConversationState(member.phone, STATES.IDLE, tid);
   return await whatsapp.sendText(member.phone,
     `✅ Your message has been sent to ${trainer?.name || 'your trainer'}! They'll reply shortly. 💬`
   );
@@ -292,7 +302,7 @@ async function handlePauseDaysInput(member, text) {
     expiryDate: newExpiry,
     status: 'paused',
   });
-  await db.setConversationState(member.phone, STATES.IDLE);
+  await db.setConversationState(member.phone, STATES.IDLE, member.tenantId || defaultTenantId());
   return await whatsapp.sendText(member.phone,
     `⏸️ *Membership Paused!*\n\n` +
     `Your ${days}-day pause has been set.\n` +
@@ -302,27 +312,33 @@ async function handlePauseDaysInput(member, text) {
 }
 
 async function handlePauseConfirm(member, text) {
-  await db.setConversationState(member.phone, STATES.IDLE);
+  await db.setConversationState(member.phone, STATES.IDLE, member.tenantId || defaultTenantId());
   return await whatsapp.sendText(member.phone, '✅ No problem! Membership continues normally.');
 }
 
 async function confirmBatchChange(member, newBatch) {
   await db.updateMember(member.id, { batchTime: newBatch });
-  await db.setConversationState(member.phone, STATES.IDLE);
+  await db.setConversationState(member.phone, STATES.IDLE, member.tenantId || defaultTenantId());
   return await whatsapp.sendText(member.phone,
     `✅ *Batch Updated!*\n\nYou've been moved to the *${newBatch}* batch starting tomorrow.\n\n` +
     `Our trainer will confirm your spot. See you then! 💪`
   );
 }
 
-async function handleUnknownContact(phone, text) {
+async function handleUnknownContact(phone, text, rc) {
+  const name = rc.brandName || process.env.GYM_NAME || 'Our Gym';
+  const tel = rc.supportPhone || process.env.GYM_PHONE || '';
+  const site = rc.websiteUrl || process.env.GYM_WEBSITE || '';
+  const lines = ['1️⃣ Register at the front desk'];
+  if (tel) lines.push(`2️⃣ Call us: ${tel}`);
+  if (site) {
+    lines.push(`${tel ? '3' : '2'}️⃣ Visit: ${site}`);
+  }
   return await whatsapp.sendText(phone,
-    `👋 Hi there! Welcome to *${process.env.GYM_NAME || 'GymBot Pro'}!*\n\n` +
-    `I don't have your details yet. To get started:\n` +
-    `1️⃣ Visit our gym to register\n` +
-    `2️⃣ Or call us: ${process.env.GYM_PHONE}\n` +
-    `3️⃣ Or visit: ${process.env.GYM_WEBSITE}\n\n` +
-    `💪 We'd love to have you on your fitness journey!`
+    `👋 Hi there! Welcome to *${name}*.\n\n` +
+    `I do not have your membership on file yet. To get started:\n` +
+    `${lines.join('\n')}\n\n` +
+    `We will add you to WhatsApp automatically after you sign up.`
   );
 }
 
@@ -331,8 +347,13 @@ async function handleUnknownContact(phone, text) {
 // ─────────────────────────────────────────
 
 async function triggerOnboarding(member) {
+  const rc = await gymConfig.getRuntimeConfig(member.tenantId || defaultTenantId());
+  if (rc.automations && rc.automations.autoOnboard === false) {
+    await db.logAutomation(member.id, 'onboarding_skipped', { reason: 'auto_onboard_disabled' });
+    return;
+  }
   console.log(`🚀 Triggering onboarding for ${member.name}`);
-  await whatsapp.sendWelcomeAndIntakeForm(member);
+  await whatsapp.sendWelcomeAndIntakeForm(member, { intakeFormUrl: rc.intakeFormUrl });
   await db.logAutomation(member.id, 'onboarding_started');
 }
 
@@ -348,9 +369,14 @@ function normalizeFormGoal(goal) {
   return 'general';
 }
 
-async function handleNewMemberFormSubmission(formData) {
+async function handleNewMemberFormSubmission(formData, tenantId) {
+  const tid = tenantId || formData.tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.autoOnboard === false) {
+    return { ok: false, reason: 'auto_onboard_disabled' };
+  }
   const phone = cleanPhone(formData.phone);
-  let member = await db.getMemberByPhone(phone);
+  let member = await db.getMemberByPhone(phone, tid);
   let created = false;
   const goalNorm = normalizeFormGoal(formData.goal);
 
@@ -358,6 +384,7 @@ async function handleNewMemberFormSubmission(formData) {
     const defaultPlan = process.env.DEFAULT_FORM_PLAN || 'monthly';
     try {
       member = await db.createMember({
+        tenantId: tid,
         name: formData.name || 'New Member',
         phone: formData.phone,
         plan: defaultPlan,
@@ -368,7 +395,7 @@ async function handleNewMemberFormSubmission(formData) {
       created = true;
       console.log('Form webhook: created new member from form', member.id);
     } catch (err) {
-      member = await db.getMemberByPhone(phone);
+      member = await db.getMemberByPhone(phone, tid);
       if (!member) {
         console.error('Form webhook: create failed', err.message);
         return { ok: false, reason: 'create_failed', detail: err.message };
@@ -390,24 +417,30 @@ async function handleNewMemberFormSubmission(formData) {
     formSubmittedAt: new Date(),
   });
 
-  const trainer = await db.assignTrainer(member.id, goalNorm);
+  const trainer = await db.assignTrainer(member.id, goalNorm, tid);
 
   await delay(2000);
-  const r = await db.getMemberById(member.id);
+  const r = await db.getMemberById(member.id, tid);
   await whatsapp.sendMembershipConfirmation({
     name: r.name,
     phone: r.phone,
     plan: r.plan,
     planName: getPlanName(r.plan),
-    expiryDate: r.expiry_date,
-    batchTime: r.batch_time,
+    expiryDate: r.expiryDate,
+    batchTime: r.batchTime,
     trainerName: trainer?.name,
   });
 
   return { ok: true, memberId: member.id, created };
 }
 
-async function sendMorningMotivation(members) {
+async function sendMorningMotivation(members, tenantId) {
+  const tid = tenantId || members[0]?.tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.morningMotivation === false) {
+    console.log('⏭️ Morning motivation skipped (disabled in config)');
+    return;
+  }
   const quotes = getMorningQuotes();
   let sent = 0;
 
@@ -430,13 +463,23 @@ async function sendMorningMotivation(members) {
   console.log(`✅ Morning motivation sent to ${sent} members`);
 }
 
-async function sendWeeklyPlans(members) {
-  if (!members) members = await db.getMembers({ status: 'active' });
+async function sendWeeklyPlans(members, tenantId) {
+  const tid = tenantId || members?.[0]?.tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.weeklyDiet === false) {
+    console.log('⏭️ Weekly plans skipped (disabled in config)');
+    return;
+  }
+  if (!members) members = await db.getMembers({ status: 'active', tenantId: tid });
   let sent = 0;
 
   for (const member of members) {
     try {
       const dietUrl = await getDietPlanUrl(member);
+      if (!dietUrl) {
+        console.warn(`No diet PDF URL for ${member.name} — set cdnBaseUrl or CDN_URL`);
+        continue;
+      }
       await whatsapp.sendWeeklyDietPlan(member, dietUrl);
       sent++;
       await delay(500);
@@ -448,9 +491,15 @@ async function sendWeeklyPlans(members) {
   console.log(`✅ Weekly plans sent to ${sent} members`);
 }
 
-async function checkMilestonesAndBirthdays() {
+async function checkMilestonesAndBirthdays(tenantId) {
+  const tid = tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.milestonesBirthdays === false) {
+    console.log('⏭️ Milestones/birthdays skipped (disabled in config)');
+    return;
+  }
   const today = new Date();
-  const members = await db.getMembers({ status: 'active' });
+  const members = await db.getMembers({ status: 'active', tenantId: tid });
 
   for (const member of members) {
     try {
@@ -475,8 +524,14 @@ async function checkMilestonesAndBirthdays() {
   }
 }
 
-async function runEveningEngagement() {
-  const members = await db.getMembers({ status: 'active' });
+async function runEveningEngagement(tenantId) {
+  const tid = tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.eveningEngagement === false) {
+    console.log('⏭️ Evening engagement skipped (disabled in config)');
+    return;
+  }
+  const members = await db.getMembers({ status: 'active', tenantId: tid });
   const absentToday = members.filter(m => !m.checkedInToday);
 
   for (const member of absentToday) {
@@ -493,12 +548,19 @@ async function runEveningEngagement() {
   }
 }
 
-async function runWinBackCampaign() {
-  const lapsedMembers = await db.getMembers({ status: 'expired', expiredDaysAgo: 7 });
+async function runWinBackCampaign(tenantId) {
+  const tid = tenantId || defaultTenantId();
+  const rc = await gymConfig.getRuntimeConfig(tid);
+  if (rc.automations && rc.automations.winback === false) {
+    console.log('⏭️ Win-back campaign skipped (disabled in config)');
+    return;
+  }
+  const lapsedMembers = await db.getMembers({ status: 'expired', expiredDaysAgo: 7, tenantId: tid });
 
   for (const member of lapsedMembers) {
     try {
-      const offerCode = `WIN${member.id.slice(-4).toUpperCase()}`;
+      const shortId = String(member.id).replace(/-/g, '').slice(-4).toUpperCase();
+      const offerCode = `WIN${shortId}`;
       await whatsapp.sendWinBackMessage(member, offerCode);
       await db.logAutomation(member.id, 'winback_sent');
       await delay(500);
@@ -597,7 +659,13 @@ function getDayFocus(dayNum) {
 }
 
 async function getDietPlanUrl(member) {
-  return `${process.env.CDN_URL}/diet-plans/${member.fitnessGoal || 'general'}-week.pdf`;
+  const rc = await gymConfig.getRuntimeConfig(member.tenantId || defaultTenantId());
+  const cdn = rc.cdnBaseUrl || process.env.CDN_URL || '';
+  if (cdn) {
+    return `${cdn.replace(/\/$/, '')}/diet-plans/${member.fitnessGoal || 'general'}-week.pdf`;
+  }
+  const web = rc.websiteUrl || '';
+  return web ? `${web.replace(/\/$/, '')}/diet-plans/${member.fitnessGoal || 'general'}-week.pdf` : '';
 }
 
 function getPlanName(plan) {
