@@ -16,10 +16,20 @@ const db = require('./services/database');
 const automation = require('./services/automation');
 const payments = require('./services/payments');
 const gymConfig = require('./services/gymConfig');
+const IntegrationService = require('./services/integrations');
+const WAProviderService = require('./services/waProviders');
+const createIntegrationRoutes = require('./routes/integrations');
 const { requireAdmin } = require('./middleware/adminAuth');
 const { resolveTenantFromWebhook } = require('./services/tenantResolver');
 const { issueAdminToken } = require('./services/authService');
 const { defaultTenantId } = require('./lib/defaultTenant');
+
+// Initialize services
+const integrationService = new IntegrationService(db);
+const waProviderService = new WAProviderService(db);
+
+// Wire integration service into automation
+automation.setIntegrationService(integrationService);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -48,6 +58,11 @@ app.get('/health', (req, res) => {
 app.head('/health', (req, res) => {
   res.status(200).end();
 });
+
+// ─────────────────────────────────────────
+// INTEGRATION ROUTES
+// ─────────────────────────────────────────
+app.use('/api', createIntegrationRoutes(db, integrationService, waProviderService));
 
 // ─────────────────────────────────────────
 // WEBHOOK — WhatsApp incoming messages

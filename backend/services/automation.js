@@ -13,6 +13,22 @@ const payments = require('./payments');
 const gymConfig = require('./gymConfig');
 const { defaultTenantId } = require('../lib/defaultTenant');
 
+// Integration service injected by server.js
+let integrationService = null;
+
+function setIntegrationService(service) {
+  integrationService = service;
+}
+
+async function fireIntegrationEvent(tenantId, eventType, payload, memberId = null) {
+  if (!integrationService) return;
+  try {
+    await integrationService.fireEvent(tenantId, eventType, payload, memberId);
+  } catch (err) {
+    console.error('[Automation] Integration event fire error:', err);
+  }
+}
+
 // ─────────────────────────────────────────
 // CONVERSATION STATE MACHINE
 // Bot remembers where each user is in conversation
@@ -421,6 +437,17 @@ async function handleNewMemberFormSubmission(formData, tenantId) {
 
   await delay(2000);
   const r = await db.getMemberById(member.id, tid);
+
+  // Fire integration event
+  fireIntegrationEvent(tid, 'member.created', {
+    id: member.id,
+    name: r.name,
+    phone: r.phone,
+    plan: r.plan,
+    status: r.status,
+    trainerId: trainer?.id
+  }, member.id);
+
   await whatsapp.sendMembershipConfirmation({
     name: r.name,
     phone: r.phone,
@@ -710,4 +737,6 @@ module.exports = {
   runEveningEngagement,
   runWinBackCampaign,
   broadcastMessage,
+  setIntegrationService,
+  fireIntegrationEvent,
 };
